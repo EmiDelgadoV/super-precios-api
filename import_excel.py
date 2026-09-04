@@ -46,7 +46,7 @@ def importar():
         if not existente:
             db.add(models.Store(number=numero, name=str(nombre).strip()))
     db.commit()
-    print(f"  → {db.query(models.Store).count()} comercios cargados")
+    print(f"  >> {db.query(models.Store).count()} comercios cargados")
 
     # ── CATEGORÍAS ───────────────────────────────────────
     print("Importando categorías...")
@@ -61,7 +61,7 @@ def importar():
             nombre = CATEGORY_NAMES.get(codigo, codigo)
             db.add(models.Category(code=codigo, name=nombre))
     db.commit()
-    print(f"  → {db.query(models.Category).count()} categorías cargadas")
+    print(f"  >> {db.query(models.Category).count()} categorias cargadas")
 
     # ── PRODUCTOS Y PRECIOS desde hoja B ────────────────
     print("Importando productos y precios...")
@@ -114,8 +114,8 @@ def importar():
             continue
 
     db.commit()
-    print(f"  → {db.query(models.Product).count()} productos cargados")
-    print(f"  → {db.query(models.Price).count()} precios cargados")
+    print(f"  >> {db.query(models.Product).count()} productos cargados")
+    print(f"  >> {db.query(models.Price).count()} precios cargados")
     db.close()
     print("¡Importación completada!")
 

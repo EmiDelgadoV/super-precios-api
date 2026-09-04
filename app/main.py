@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.database import engine
 from app import models
+from app.routers import stores, products, prices
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -12,11 +13,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.include_router(stores.router)
+app.include_router(products.router)
+app.include_router(prices.router)
 
-@app.get("/")
-def root():
-    return FileResponse("app/static/index.html")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/health")
 def health():
