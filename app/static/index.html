@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#0f0f0f">
+    <title>Super Precios</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface2: #242424;
+            --border: #2e2e2e;
+            --text: #f0f0f0;
+            --muted: #888;
+            --green: #4ade80;
+            --red: #f87171;
+            --yellow: #fbbf24;
+            --accent: #3b82f6;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 16px;
+            min-height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: none;
+        }
+
+        /* ── SCREENS ── */
+        .screen {
+            display: none;
+            padding: 16px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ── SEARCH ── */
+        .search-box {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ── CATEGORY GRID ── */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .category-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .category-card:active {
+            background: var(--surface2);
+        }
+
+        .category-card .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .category-card .name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ── PRODUCT LIST ── */
+        .product-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .product-item:active {
+            background: var(--surface2);
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .product-best {
+            font-size: 12px;
+            color: var(--green);
+            margin-top: 4px;
+        }
+
+        /* ── PRICE CARDS ── */
+        .price-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price-card.cheapest {
+            border-color: var(--green);
+            background: #0f2a1a;
+        }
+
+        .price-store {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .price-brand {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .price-amount {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .price-amount.cheapest {
+            color: var(--green);
+        }
+
+        .price-unit {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .price-variation {
+            font-size: 12px;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .variation-up {
+            color: var(--red);
+        }
+
+        .variation-down {
+            color: var(--green);
+        }
+
+        /* ── CHEAPEST BADGE ── */
+        .badge-cheapest {
+            background: var(--green);
+            color: #000;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        /* ── STORE LIST ── */
+        .store-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .store-number {
+            background: var(--accent);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ── UPDATE FORM ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-select option {
+            background: var(--surface2);
+        }
+
+        /* ── BUTTON ── */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: #000;
+        }
+
+        .btn-primary:active {
+            opacity: 0.8;
+        }
+
+        .btn-success:active {
+            opacity: 0.8;
+        }
+
+        /* ── NAV BOTTOM ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px 8px 16px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--muted);
+            font-size: 10px;
+            transition: color 0.15s;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px 0;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--muted);
+            padding: 24px 0;
+        }
+
+        pb {
+            padding-bottom: 80px;
+            display: block;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <button class="back-btn" id="backBtn" onclick="goBack()">&#8592;</button>
+        <h1 id="headerTitle">Super Precios</h1>
+    </div>
+
+    <!-- PANTALLA 1: CATEGORÍAS -->
+    <div class="screen active" id="screen-categories">
+        <pb></pb>
+        <div style="padding-bottom: 80px">
+            <p class="section-title">Categorias</p>
+            <div class="category-grid" id="categoryGrid">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: PRODUCTOS -->
+    <div class="screen" id="screen-products">
+        <div style="padding-bottom: 80px">
+            <input class="search-box" id="searchInput" placeholder="Buscar producto..." oninput="filterProducts()">
+            <div id="productList">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: DETALLE PRODUCTO -->
+    <div class="screen" id="screen-detail">
+        <div style="padding-bottom: 80px">
+            <div id="detailContent">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 4: COMERCIOS -->
+    <div class="screen" id="screen-stores">
+        <div style="padding-bottom: 80px">
+            <p class="section-title">Comercios</p>
+            <div id="storeList">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 5: ACTUALIZAR PRECIO -->
+    <div class="screen" id="screen-update">
+        <div style="padding-bottom: 80px">
+            <p class="section-title">Actualizar precio</p>
+            <div class="form-group">
+                <label class="form-label">Producto</label>
+                <select class="form-select" id="updateProduct">
+                    <option value="">Seleccionar producto...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Comercio</label>
+                <select class="form-select" id="updateStore">
+                    <option value="">Seleccionar comercio...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Precio ($)</label>
+                <input class="form-input" type="number" id="updateAmount" placeholder="Ej: 2500" step="0.01">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Marca (opcional)</label>
+                <input class="form-input" type="text" id="updateBrand" placeholder="Ej: La Serenisima">
+            </div>
+            <button class="btn btn-success" onclick="submitPrice()">Guardar precio</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="nav-categories" onclick="showTab('categories')">
+            <span class="nav-icon">🏷️</span>Categorias
+        </button>
+        <button class="nav-item" id="nav-stores" onclick="showTab('stores')">
+            <span class="nav-icon">🏪</span>Comercios
+        </button>
+        <button class="nav-item" id="nav-update" onclick="showTab('update')">
+            <span class="nav-icon">✏️</span>Actualizar
+        </button>
+    </nav>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '';
+        let allProducts = [];
+        let currentCategory = null;
+        let history = [];
+
+        const CATEGORY_ICONS = {
+            'LAC': '🥛', 'FRU': '🍎', 'VEC': '🥕', 'VER': '🥬',
+            'CRN': '🥩', 'PAQ': '🌾', 'BBD': '🥤', 'GLS': '🍬',
+            'SAB': '🧂', 'HIG': '🧴', 'LIM': '🧹', 'DYN': '☕',
+            'LAT': '🥫', 'MSC': '📦', 'VRS': '🛒', 'NV': '🎄',
+        };
+
+        // ── NAVEGACIÓN ──────────────────────────────────────────
+
+        function showScreen(id, title, showBack = false) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + id).classList.add('active');
+            document.getElementById('headerTitle').textContent = title;
+            document.getElementById('backBtn').style.display = showBack ? 'block' : 'none';
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('nav-' + tab).classList.add('active');
+            history = [];
+
+            if (tab === 'categories') {
+                showScreen('categories', 'Super Precios');
+                loadCategories();
+            } else if (tab === 'stores') {
+                showScreen('stores', 'Comercios');
+                loadStores();
+            } else if (tab === 'update') {
+                showScreen('update', 'Actualizar precio');
+                loadUpdateForm();
+            }
+        }
+
+        function goBack() {
+            if (history.length > 0) {
+                const prev = history.pop();
+                prev();
+            }
+        }
+
+        // ── CATEGORÍAS ──────────────────────────────────────────
+
+        async function loadCategories() {
+            const res = await fetch(`${API}/products/categories`);
+            const cats = await res.json();
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = cats.map(c => `
+    <div class="category-card" onclick="openCategory('${c.code}', '${c.name}')">
+      <div class="icon">${CATEGORY_ICONS[c.code] || '📦'}</div>
+      <div class="name">${c.name}</div>
+    </div>
+  `).join('');
+        }
+
+        async function openCategory(code, name) {
+            history.push(() => showTab('categories'));
+            currentCategory = code;
+            showScreen('products', name, true);
+            document.getElementById('searchInput').value = '';
+            await loadProducts(code);
+        }
+
+        async function loadProducts(category) {
+            const res = await fetch(`${API}/products/?category=${category}`);
+            allProducts = await res.json();
+            renderProducts(allProducts);
+        }
+
+        function renderProducts(products) {
+            const list = document.getElementById('productList');
+            if (!products.length) {
+                list.innerHTML = '<div class="empty-state">Sin productos en esta categoria</div>';
+                return;
+            }
+            list.innerHTML = products.map(p => {
+                const cheapest = p.prices?.find(pr => pr.is_cheapest === 1);
+                const bestInfo = cheapest
+                    ? `Mas barato: ${cheapest.store_name} $${cheapest.amount?.toLocaleString('es-AR')}`
+                    : '';
+                return `
+      <div class="product-item" onclick="openProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+        <div class="product-name">${p.name}</div>
+        ${bestInfo ? `<div class="product-best">✓ ${bestInfo}</div>` : ''}
+      </div>
+    `;
+            }).join('');
+        }
+
+        function filterProducts() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
+        }
+
+        // ── DETALLE PRODUCTO ────────────────────────────────────
+
+        async function openProduct(id, name) {
+            history.push(() => openCategory(currentCategory, name));
+            showScreen('detail', name, true);
+            document.getElementById('detailContent').innerHTML = '<div class="loading">Cargando...</div>';
+
+            const res = await fetch(`${API}/products/${id}`);
+            const data = await res.json();
+
+            const prices = data.prices || [];
+            prices.sort((a, b) => a.amount - b.amount);
+
+            document.getElementById('detailContent').innerHTML = `
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${data.category}</p>
+    ${prices.map(p => {
+                const varHtml = p.variation_pct != null
+                    ? `<div class="price-variation ${p.variation_pct > 0 ? 'variation-up' : 'variation-down'}">
+             ${p.variation_pct > 0 ? '▲' : '▼'} ${Math.abs(p.variation_pct)}%
+           </div>` : '';
+                return `
+        <div class="price-card ${p.is_cheapest ? 'cheapest' : ''}">
+          <div>
+            <div class="price-store">
+              ${p.store_name}
+              ${p.is_cheapest ? '<span class="badge-cheapest">MAS BARATO</span>' : ''}
+            </div>
+            ${p.brand ? `<div class="price-brand">${p.brand}</div>` : ''}
+          </div>
+          <div>
+            <div class="price-amount ${p.is_cheapest ? 'cheapest' : ''}">
+              $${p.amount?.toLocaleString('es-AR')}
+            </div>
+            ${p.unit_price ? `<div class="price-unit">$${Math.round(p.unit_price).toLocaleString('es-AR')}/kg</div>` : ''}
+            ${varHtml}
+          </div>
+        </div>
+      `;
+            }).join('')}
+  `;
+        }
+
+        // ── COMERCIOS ───────────────────────────────────────────
+
+        async function loadStores() {
+            const res = await fetch(`${API}/stores/`);
+            const stores = await res.json();
+            document.getElementById('storeList').innerHTML = stores.map(s => `
+    <div class="store-item" onclick="openStore(${s.id}, '${s.name}')">
+      <div class="store-number">${s.number}</div>
+      <div>
+        <div style="font-weight:600">${s.name}</div>
+        <div style="font-size:12px;color:var(--muted)">Ver mejores precios</div>
+      </div>
+    </div>
+  `).join('');
+        }
+
+        async function openStore(id, name) {
+            history.push(() => showTab('stores'));
+            showScreen('detail', name, true);
+            document.getElementById('detailContent').innerHTML = '<div class="loading">Cargando...</div>';
+
+            const res = await fetch(`${API}/stores/${id}/best-prices`);
+            const data = await res.json();
+            const items = data.best_prices || [];
+
+            if (!items.length) {
+                document.getElementById('detailContent').innerHTML =
+                    '<div class="empty-state">Sin precios registrados</div>';
+                return;
+            }
+
+            const byCategory = {};
+            items.forEach(item => {
+                if (!byCategory[item.category]) byCategory[item.category] = [];
+                byCategory[item.category].push(item);
+            });
+
+            document.getElementById('detailContent').innerHTML = Object.entries(byCategory).map(([cat, prods]) => `
+    <div style="margin-bottom:20px">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">${cat}</p>
+      ${prods.map(p => `
+        <div class="price-card cheapest" style="margin-bottom:8px">
+          <div>
+            <div class="price-store">${p.product_name}</div>
+            ${p.brand ? `<div class="price-brand">${p.brand}</div>` : ''}
+          </div>
+          <div class="price-amount cheapest">$${p.amount?.toLocaleString('es-AR')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+        }
+
+        // ── ACTUALIZAR PRECIO ────────────────────────────────────
+
+        async function loadUpdateForm() {
+            const [prodRes, storeRes] = await Promise.all([
+                fetch(`${API}/products/`),
+                fetch(`${API}/stores/`)
+            ]);
+            const products = await prodRes.json();
+            const stores = await storeRes.json();
+
+            document.getElementById('updateProduct').innerHTML =
+                '<option value="">Seleccionar producto...</option>' +
+                products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            document.getElementById('updateStore').innerHTML =
+                '<option value="">Seleccionar comercio...</option>' +
+                stores.map(s => `<option value="${s.id}">${s.number}. ${s.name}</option>`).join('');
+        }
+
+        async function submitPrice() {
+            const product_id = parseInt(document.getElementById('updateProduct').value);
+            const store_id = parseInt(document.getElementById('updateStore').value);
+            const amount = parseFloat(document.getElementById('updateAmount').value);
+            const brand = document.getElementById('updateBrand').value || null;
+
+            if (!product_id || !store_id || !amount) {
+                showToast('Completa todos los campos obligatorios', false);
+                return;
+            }
+
+            const res = await fetch(`${API}/prices/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id, store_id, amount, brand })
+            });
+
+            if (res.ok) {
+                showToast('Precio actualizado');
+                document.getElementById('updateAmount').value = '';
+                document.getElementById('updateBrand').value = '';
+            } else {
+                showToast('Error al guardar', false);
+            }
+        }
+
+        // ── TOAST ────────────────────────────────────────────────
+
+        function showToast(msg, success = true) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = success ? 'var(--green)' : 'var(--red)';
+            t.style.color = success ? '#000' : '#fff';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ── INIT ─────────────────────────────────────────────────
+        loadCategories();
+    </script>
+</body>
+
+</html>

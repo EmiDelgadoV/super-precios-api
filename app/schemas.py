@@ -24,15 +24,15 @@ class CategoryResponse(CategoryBase):
 class PriceResponse(BaseModel):
     id: int
     store_id: int
-    store_name: str
+    store_name: Optional[str] = None
     amount: float
-    unit_price: Optional[float]
-    quantity: Optional[float]
-    brand: Optional[str]
-    is_cheapest: int
-    previous_amount: Optional[float]
-    variation_pct: Optional[float]
-    updated_at: datetime
+    unit_price: Optional[float] = None
+    quantity: Optional[float] = None
+    brand: Optional[str] = None
+    is_cheapest: int = 0
+    previous_amount: Optional[float] = None
+    variation_pct: Optional[float] = None
+    updated_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
 
 

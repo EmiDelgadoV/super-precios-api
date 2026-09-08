@@ -17,8 +17,12 @@ app.include_router(stores.router)
 app.include_router(products.router)
 app.include_router(prices.router)
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/")
+def root():
+    return FileResponse("app/static/index.html")
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
