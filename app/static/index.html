@@ -472,6 +472,65 @@
         </div>
     </div>
 
+    <!-- PANTALLA 6: ADMINISTRAR -->
+    <div class="screen" id="screen-admin">
+        <div style="padding-bottom: 80px">
+            <p class="section-title">Administrar</p>
+
+            <!-- Crear producto -->
+            <div
+                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+                <p style="font-weight:700;margin-bottom:12px">Nuevo producto</p>
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-input" type="text" id="newProductName" placeholder="Ej: LecheEntera">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select class="form-select" id="newProductCategory">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="createProduct()">Crear producto</button>
+            </div>
+
+            <!-- Crear comercio -->
+            <div
+                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+                <p style="font-weight:700;margin-bottom:12px">Nuevo comercio</p>
+                <div class="form-group">
+                    <label class="form-label">Numero</label>
+                    <input class="form-input" type="number" id="newStoreNumber" placeholder="Ej: 14">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-input" type="text" id="newStoreName" placeholder="Ej: Dia">
+                </div>
+                <button class="btn btn-primary" onclick="createStore()">Crear comercio</button>
+            </div>
+
+            <!-- Lista de productos para eliminar -->
+            <div
+                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+                <p style="font-weight:700;margin-bottom:12px">Eliminar producto</p>
+                <select class="form-select" id="deleteProductSelect" style="margin-bottom:12px">
+                    <option value="">Seleccionar producto...</option>
+                </select>
+                <button class="btn" style="background:var(--red);color:white"
+                    onclick="deleteProduct()">Eliminar</button>
+            </div>
+
+            <!-- Lista de comercios para eliminar -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px">
+                <p style="font-weight:700;margin-bottom:12px">Eliminar comercio</p>
+                <select class="form-select" id="deleteStoreSelect" style="margin-bottom:12px">
+                    <option value="">Seleccionar comercio...</option>
+                </select>
+                <button class="btn" style="background:var(--red);color:white" onclick="deleteStore()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
         <button class="nav-item active" id="nav-categories" onclick="showTab('categories')">
@@ -482,6 +541,9 @@
         </button>
         <button class="nav-item" id="nav-update" onclick="showTab('update')">
             <span class="nav-icon">✏️</span>Actualizar
+        </button>
+        <button class="nav-item" id="nav-admin" onclick="showTab('admin')">
+            <span class="nav-icon">⚙️</span>Administrar
         </button>
     </nav>
 
@@ -524,6 +586,9 @@
             } else if (tab === 'update') {
                 showScreen('update', 'Actualizar precio');
                 loadUpdateForm();
+            } else if (tab === 'admin') {
+                showScreen('admin', 'Administrar');
+                loadAdminScreen();
             }
         }
 
@@ -736,6 +801,98 @@
             t.style.color = success ? '#000' : '#fff';
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ── ADMINISTRAR ──────────────────────────────────────────
+
+        async function loadAdminScreen() {
+            const [catRes, prodRes, storeRes] = await Promise.all([
+                fetch(`${API}/products/categories`),
+                fetch(`${API}/products/`),
+                fetch(`${API}/stores/`)
+            ]);
+            const categories = await catRes.json();
+            const products = await prodRes.json();
+            const stores = await storeRes.json();
+
+            document.getElementById('newProductCategory').innerHTML =
+                '<option value="">Seleccionar...</option>' +
+                categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            document.getElementById('deleteProductSelect').innerHTML =
+                '<option value="">Seleccionar producto...</option>' +
+                products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            document.getElementById('deleteStoreSelect').innerHTML =
+                '<option value="">Seleccionar comercio...</option>' +
+                stores.map(s => `<option value="${s.id}">${s.number}. ${s.name}</option>`).join('');
+        }
+
+        async function createProduct() {
+            const name = document.getElementById('newProductName').value.trim();
+            const category_id = document.getElementById('newProductCategory').value;
+            if (!name || !category_id) {
+                showToast('Completa nombre y categoria', false);
+                return;
+            }
+            const res = await fetch(`${API}/products/?name=${encodeURIComponent(name)}&category_id=${category_id}`, {
+                method: 'POST'
+            });
+            if (res.ok) {
+                showToast('Producto creado');
+                document.getElementById('newProductName').value = '';
+                loadAdminScreen();
+            } else {
+                const err = await res.json();
+                showToast(err.detail || 'Error al crear', false);
+            }
+        }
+
+        async function createStore() {
+            const name = document.getElementById('newStoreName').value.trim();
+            const number = document.getElementById('newStoreNumber').value;
+            if (!name || !number) {
+                showToast('Completa nombre y numero', false);
+                return;
+            }
+            const res = await fetch(`${API}/stores/?name=${encodeURIComponent(name)}&number=${number}`, {
+                method: 'POST'
+            });
+            if (res.ok) {
+                showToast('Comercio creado');
+                document.getElementById('newStoreName').value = '';
+                document.getElementById('newStoreNumber').value = '';
+                loadAdminScreen();
+            } else {
+                const err = await res.json();
+                showToast(err.detail || 'Error al crear', false);
+            }
+        }
+
+        async function deleteProduct() {
+            const id = document.getElementById('deleteProductSelect').value;
+            if (!id) { showToast('Selecciona un producto', false); return; }
+            if (!confirm('¿Eliminar este producto?')) return;
+            const res = await fetch(`${API}/products/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Producto eliminado');
+                loadAdminScreen();
+            } else {
+                showToast('Error al eliminar', false);
+            }
+        }
+
+        async function deleteStore() {
+            const id = document.getElementById('deleteStoreSelect').value;
+            if (!id) { showToast('Selecciona un comercio', false); return; }
+            if (!confirm('¿Eliminar este comercio?')) return;
+            const res = await fetch(`${API}/stores/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Comercio eliminado');
+                loadAdminScreen();
+            } else {
+                showToast('Error al eliminar', false);
+            }
         }
 
         // ── INIT ─────────────────────────────────────────────────

@@ -100,3 +100,44 @@ def get_product_prices(product_id: int, db: Session = Depends(get_db)):
         "category": product.category.name,
         "prices": prices
     }
+
+@router.post("/")
+def create_product(
+    name: str,
+    category_id: int,
+    db: Session = Depends(get_db)
+):
+    existing = db.query(models.Product).filter(
+        models.Product.name == name,
+        models.Product.category_id == category_id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="El producto ya existe")
+
+    product = models.Product(name=name, category_id=category_id)
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    return {
+        "id": product.id,
+        "name": product.name,
+        "category_id": product.category_id
+    }
+
+
+@router.delete("/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    
+    # Eliminar precios asociados primero
+    db.query(models.Price).filter(
+        models.Price.product_id == product_id
+    ).delete()
+    
+    db.delete(product)
+    db.commit()
+    return {"mensaje": "Producto eliminado"}
