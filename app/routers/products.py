@@ -6,12 +6,6 @@ from app import models
 router = APIRouter(prefix="/products", tags=["Productos"])
 
 
-@router.get("/categories")
-def get_categories(db: Session = Depends(get_db)):
-    cats = db.query(models.Category).order_by(models.Category.name).all()
-    return [{"id": c.id, "code": c.code, "name": c.name} for c in cats]
-
-
 @router.get("/")
 def get_products(
     category: str = None,
@@ -101,21 +95,74 @@ def get_product_prices(product_id: int, db: Session = Depends(get_db)):
         "prices": prices
     }
 
+
 @router.post("/")
 def create_product(
     name: str,
     category_id: int,
     db: Session = Depends(get_db)
 ):
+    name = name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
+
+    category = db.query(models.Category).filter(
+        models.Category.id == category_id
+    ).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Categoria no encontrada")
+
     existing = db.query(models.Product).filter(
         models.Product.name == name,
         models.Product.category_id == category_id
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="El producto ya existe")
+        raise HTTPException(status_code=400, detail="El producto ya existe en esa categoria")
 
     product = models.Product(name=name, category_id=category_id)
     db.add(product)
+    db.commit()
+    db.refresh(product)
+    return {
+        "id": product.id,
+        "name": product.name,
+        "category_id": product.category_id
+    }
+
+
+@router.put("/{product_id}")
+def update_product(
+    product_id: int,
+    name: str,
+    category_id: int,
+    db: Session = Depends(get_db)
+):
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    name = name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
+
+    category = db.query(models.Category).filter(
+        models.Category.id == category_id
+    ).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Categoria no encontrada")
+
+    duplicate = db.query(models.Product).filter(
+        models.Product.name == name,
+        models.Product.category_id == category_id,
+        models.Product.id != product_id
+    ).first()
+    if duplicate:
+        raise HTTPException(status_code=400, detail="Ya existe un producto con ese nombre en esa categoria")
+
+    product.name = name
+    product.category_id = category_id
     db.commit()
     db.refresh(product)
     return {
@@ -132,12 +179,12 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
-    
+
     # Eliminar precios asociados primero
     db.query(models.Price).filter(
         models.Price.product_id == product_id
     ).delete()
-    
+
     db.delete(product)
     db.commit()
     return {"mensaje": "Producto eliminado"}

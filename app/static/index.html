@@ -69,11 +69,41 @@
         /* ── SCREENS ── */
         .screen {
             display: none;
-            padding: 16px;
+            padding: 16px 16px 96px;
         }
 
         .screen.active {
             display: block;
+        }
+
+        /* ── SECTION ROW (titulo + boton crear) ── */
+        .section-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 4px 0 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-add:active {
+            opacity: 0.8;
         }
 
         /* ── SEARCH ── */
@@ -93,6 +123,34 @@
             border-color: var(--accent);
         }
 
+        /* ── SEGMENTED (filtro de dos opciones) ── */
+        .segmented {
+            display: flex;
+            gap: 3px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 16px;
+        }
+
+        .seg-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .seg-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
         /* ── CATEGORY GRID ── */
         .category-grid {
             display: grid;
@@ -104,25 +162,64 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 20px 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-main {
+            flex: 1;
+            padding: 20px 12px 14px;
             text-align: center;
             cursor: pointer;
             transition: background 0.15s;
         }
 
-        .category-card:active {
+        .category-main:active {
             background: var(--surface2);
         }
 
-        .category-card .icon {
+        .category-main .icon {
             font-size: 32px;
             margin-bottom: 8px;
         }
 
-        .category-card .name {
+        .category-main .name {
             font-size: 13px;
             font-weight: 600;
             color: var(--text);
+            word-break: break-word;
+        }
+
+        .category-main .count {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .card-actions {
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+
+        .card-actions button {
+            flex: 1;
+            padding: 10px 0;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .card-actions button:active {
+            background: var(--surface2);
+        }
+
+        .card-actions button + button {
+            border-left: 1px solid var(--border);
+            color: var(--red);
         }
 
         /* ── PRODUCT LIST ── */
@@ -143,12 +240,109 @@
         .product-name {
             font-weight: 600;
             font-size: 15px;
+            word-break: break-word;
         }
 
         .product-best {
             font-size: 12px;
             color: var(--green);
             margin-top: 4px;
+        }
+
+        /* ── ACCIONES DE FILA (editar / eliminar) ── */
+        .item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .btn-small {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-small:active {
+            opacity: 0.7;
+        }
+
+        .btn-small.danger {
+            color: var(--red);
+            border-color: var(--red);
+            background: none;
+        }
+
+        /* ── ACORDEON (desplegables) ── */
+        .accordion {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .accordion summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .accordion summary .acc-name {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .accordion summary .acc-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            background: var(--surface2);
+            border-radius: 20px;
+            padding: 2px 10px;
+        }
+
+        .accordion summary::after {
+            content: '\25B8';
+            color: var(--muted);
+            transition: transform 0.15s;
+        }
+
+        .accordion[open] summary::after {
+            transform: rotate(90deg);
+        }
+
+        .acc-body {
+            padding: 0 12px 4px;
+        }
+
+        .acc-body .product-item {
+            background: var(--surface2);
+        }
+
+        .acc-body .price-card {
+            margin-bottom: 8px;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 16px;
         }
 
         /* ── PRICE CARDS ── */
@@ -161,6 +355,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+        }
+
+        .price-card > div:first-child {
+            min-width: 0;
+            word-break: break-word;
         }
 
         .price-card.cheapest {
@@ -177,6 +377,12 @@
             font-size: 12px;
             color: var(--muted);
             margin-top: 2px;
+        }
+
+        .price-hint {
+            font-size: 12px;
+            color: var(--yellow);
+            margin-top: 4px;
         }
 
         .price-amount {
@@ -218,6 +424,7 @@
             padding: 3px 8px;
             border-radius: 20px;
             margin-left: 8px;
+            white-space: nowrap;
         }
 
         /* ── STORE LIST ── */
@@ -229,8 +436,13 @@
             margin-bottom: 10px;
             cursor: pointer;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 12px;
+        }
+
+        .store-item:active {
+            background: var(--surface2);
         }
 
         .store-number {
@@ -247,7 +459,16 @@
             flex-shrink: 0;
         }
 
-        /* ── UPDATE FORM ── */
+        .store-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .store-item .item-actions {
+            margin-top: 0;
+        }
+
+        /* ── FORMS ── */
         .form-group {
             margin-bottom: 16px;
         }
@@ -276,8 +497,47 @@
             border-color: var(--accent);
         }
 
+        .form-select:disabled {
+            opacity: 0.5;
+        }
+
         .form-select option {
             background: var(--surface2);
+        }
+
+        /* ── PRECIOS ACTUALES (pantalla Actualizar) ── */
+        .update-hint {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+        }
+
+        .update-hint .hint-title {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .hint-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .hint-row.selected {
+            background: var(--surface2);
+            font-weight: 700;
+        }
+
+        .hint-note {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
         }
 
         /* ── BUTTON ── */
@@ -292,6 +552,10 @@
             margin-top: 8px;
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+        }
+
         .btn-primary {
             background: var(--accent);
             color: white;
@@ -302,12 +566,50 @@
             color: #000;
         }
 
-        .btn-primary:active {
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .btn-primary:active,
+        .btn-success:active,
+        .btn-secondary:active {
             opacity: 0.8;
         }
 
-        .btn-success:active {
-            opacity: 0.8;
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-sheet {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-radius: 20px 20px 0 0;
+            padding: 20px 16px 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
 
         /* ── NAV BOTTOM ── */
@@ -346,14 +648,6 @@
             margin-bottom: 2px;
         }
 
-        /* ── SECTION TITLE ── */
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            margin-top: 4px;
-        }
-
         .empty-state {
             text-align: center;
             color: var(--muted);
@@ -367,15 +661,10 @@
             padding: 24px 0;
         }
 
-        pb {
-            padding-bottom: 80px;
-            display: block;
-        }
-
         /* ── TOAST ── */
         .toast {
             position: fixed;
-            bottom: 80px;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--green);
@@ -385,9 +674,12 @@
             font-weight: 600;
             font-size: 14px;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s;
-            z-index: 200;
-            white-space: nowrap;
+            z-index: 400;
+            width: max-content;
+            max-width: 90%;
+            text-align: center;
         }
 
         .toast.show {
@@ -404,130 +696,87 @@
         <h1 id="headerTitle">Super Precios</h1>
     </div>
 
-    <!-- PANTALLA 1: CATEGORÍAS -->
+    <!-- PANTALLA: CATEGORIAS -->
     <div class="screen active" id="screen-categories">
-        <pb></pb>
-        <div style="padding-bottom: 80px">
+        <div class="section-row">
             <p class="section-title">Categorias</p>
-            <div class="category-grid" id="categoryGrid">
-                <div class="loading">Cargando...</div>
-            </div>
+            <button class="btn-add" onclick="createCategory()">+ Nueva</button>
+        </div>
+        <div class="category-grid" id="categoryGrid">
+            <div class="loading">Cargando...</div>
         </div>
     </div>
 
-    <!-- PANTALLA 2: PRODUCTOS -->
+    <!-- PANTALLA: PRODUCTOS (todos, o de una categoria) -->
     <div class="screen" id="screen-products">
-        <div style="padding-bottom: 80px">
-            <input class="search-box" id="searchInput" placeholder="Buscar producto..." oninput="filterProducts()">
-            <div id="productList">
-                <div class="loading">Cargando...</div>
-            </div>
+        <div class="section-row">
+            <p class="section-title" id="productsCount"></p>
+            <button class="btn-add" onclick="createProduct()">+ Nuevo</button>
+        </div>
+        <input class="search-box" id="searchInput" placeholder="Buscar producto..." oninput="renderProducts()">
+        <div id="productList">
+            <div class="loading">Cargando...</div>
         </div>
     </div>
 
-    <!-- PANTALLA 3: DETALLE PRODUCTO -->
+    <!-- PANTALLA: DETALLE (producto o comercio) -->
     <div class="screen" id="screen-detail">
-        <div style="padding-bottom: 80px">
-            <div id="detailContent">
-                <div class="loading">Cargando...</div>
-            </div>
+        <div id="detailContent">
+            <div class="loading">Cargando...</div>
         </div>
     </div>
 
-    <!-- PANTALLA 4: COMERCIOS -->
+    <!-- PANTALLA: COMERCIOS -->
     <div class="screen" id="screen-stores">
-        <div style="padding-bottom: 80px">
+        <div class="section-row">
             <p class="section-title">Comercios</p>
-            <div id="storeList">
-                <div class="loading">Cargando...</div>
-            </div>
+            <button class="btn-add" onclick="createStore()">+ Nuevo</button>
+        </div>
+        <div id="storeList">
+            <div class="loading">Cargando...</div>
         </div>
     </div>
 
-    <!-- PANTALLA 5: ACTUALIZAR PRECIO -->
+    <!-- PANTALLA: ACTUALIZAR PRECIO -->
     <div class="screen" id="screen-update">
-        <div style="padding-bottom: 80px">
-            <p class="section-title">Actualizar precio</p>
-            <div class="form-group">
-                <label class="form-label">Producto</label>
-                <select class="form-select" id="updateProduct">
-                    <option value="">Seleccionar producto...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Comercio</label>
-                <select class="form-select" id="updateStore">
-                    <option value="">Seleccionar comercio...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Precio ($)</label>
-                <input class="form-input" type="number" id="updateAmount" placeholder="Ej: 2500" step="0.01">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Marca (opcional)</label>
-                <input class="form-input" type="text" id="updateBrand" placeholder="Ej: La Serenisima">
-            </div>
-            <button class="btn btn-success" onclick="submitPrice()">Guardar precio</button>
+        <p class="section-title" style="margin: 4px 0 16px">Actualizar precio</p>
+        <div class="form-group">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" id="updateCategory" onchange="onUpdateCategoryChange()">
+                <option value="">Seleccionar categoria...</option>
+            </select>
         </div>
+        <div class="form-group">
+            <label class="form-label">Producto</label>
+            <select class="form-select" id="updateProduct" onchange="onUpdateProductChange()" disabled>
+                <option value="">Primero elegi una categoria</option>
+            </select>
+        </div>
+        <div id="updateHint"></div>
+        <div class="form-group">
+            <label class="form-label">Comercio</label>
+            <select class="form-select" id="updateStore" onchange="onUpdateStoreChange()">
+                <option value="">Seleccionar comercio...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Precio ($)</label>
+            <input class="form-input" type="number" id="updateAmount" placeholder="Ej: 2500" step="0.01">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Marca (opcional)</label>
+            <input class="form-input" type="text" id="updateBrand" placeholder="Ej: La Serenisima">
+        </div>
+        <button class="btn btn-success" onclick="submitPrice()">Guardar precio</button>
     </div>
 
-    <!-- PANTALLA 6: ADMINISTRAR -->
-    <div class="screen" id="screen-admin">
-        <div style="padding-bottom: 80px">
-            <p class="section-title">Administrar</p>
-
-            <!-- Crear producto -->
-            <div
-                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
-                <p style="font-weight:700;margin-bottom:12px">Nuevo producto</p>
-                <div class="form-group">
-                    <label class="form-label">Nombre</label>
-                    <input class="form-input" type="text" id="newProductName" placeholder="Ej: LecheEntera">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Categoria</label>
-                    <select class="form-select" id="newProductCategory">
-                        <option value="">Seleccionar...</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="createProduct()">Crear producto</button>
-            </div>
-
-            <!-- Crear comercio -->
-            <div
-                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
-                <p style="font-weight:700;margin-bottom:12px">Nuevo comercio</p>
-                <div class="form-group">
-                    <label class="form-label">Numero</label>
-                    <input class="form-input" type="number" id="newStoreNumber" placeholder="Ej: 14">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nombre</label>
-                    <input class="form-input" type="text" id="newStoreName" placeholder="Ej: Dia">
-                </div>
-                <button class="btn btn-primary" onclick="createStore()">Crear comercio</button>
-            </div>
-
-            <!-- Lista de productos para eliminar -->
-            <div
-                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
-                <p style="font-weight:700;margin-bottom:12px">Eliminar producto</p>
-                <select class="form-select" id="deleteProductSelect" style="margin-bottom:12px">
-                    <option value="">Seleccionar producto...</option>
-                </select>
-                <button class="btn" style="background:var(--red);color:white"
-                    onclick="deleteProduct()">Eliminar</button>
-            </div>
-
-            <!-- Lista de comercios para eliminar -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px">
-                <p style="font-weight:700;margin-bottom:12px">Eliminar comercio</p>
-                <select class="form-select" id="deleteStoreSelect" style="margin-bottom:12px">
-                    <option value="">Seleccionar comercio...</option>
-                </select>
-                <button class="btn" style="background:var(--red);color:white" onclick="deleteStore()">Eliminar</button>
-            </div>
+    <!-- MODAL REUTILIZABLE (crear / editar) -->
+    <div class="modal-overlay" id="modal" onclick="if (event.target === this) closeModal()">
+        <div class="modal-sheet">
+            <p class="modal-title" id="modalTitle"></p>
+            <div id="modalFields"></div>
+            <button class="btn btn-primary" id="modalSave" onclick="submitModal()">Guardar</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
         </div>
     </div>
 
@@ -536,14 +785,14 @@
         <button class="nav-item active" id="nav-categories" onclick="showTab('categories')">
             <span class="nav-icon">🏷️</span>Categorias
         </button>
+        <button class="nav-item" id="nav-products" onclick="showTab('products')">
+            <span class="nav-icon">🛒</span>Productos
+        </button>
         <button class="nav-item" id="nav-stores" onclick="showTab('stores')">
             <span class="nav-icon">🏪</span>Comercios
         </button>
         <button class="nav-item" id="nav-update" onclick="showTab('update')">
             <span class="nav-icon">✏️</span>Actualizar
-        </button>
-        <button class="nav-item" id="nav-admin" onclick="showTab('admin')">
-            <span class="nav-icon">⚙️</span>Administrar
         </button>
     </nav>
 
@@ -552,9 +801,22 @@
 
     <script>
         const API = '';
+
+        // Datos en memoria (se recargan desde la API cada vez que se abre una pantalla)
+        let categories = [];
+        let stores = [];
         let allProducts = [];
-        let currentCategory = null;
-        let history = [];
+
+        // Pantalla Actualizar: productos con sus precios actuales
+        let updateProducts = [];
+
+        // Detalle de comercio: precios cargados y filtro activo ('all' | 'cheapest')
+        let storeDetail = { items: [], filter: 'all' };
+
+        // Estado de navegacion
+        let currentCategory = null;   // null = pestaña Productos (todos); objeto = productos de esa categoria
+        let backStack = [];           // funciones que se ejecutan al tocar la flecha "atras"
+        let modalSubmit = null;       // accion que ejecuta el boton Guardar del modal
 
         const CATEGORY_ICONS = {
             'LAC': '🥛', 'FRU': '🍎', 'VEC': '🥕', 'VER': '🥬',
@@ -563,236 +825,58 @@
             'LAT': '🥫', 'MSC': '📦', 'VRS': '🛒', 'NV': '🎄',
         };
 
-        // ── NAVEGACIÓN ──────────────────────────────────────────
+        // ── UTILIDADES ───────────────────────────────────────────
 
-        function showScreen(id, title, showBack = false) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-' + id).classList.add('active');
-            document.getElementById('headerTitle').textContent = title;
-            document.getElementById('backBtn').style.display = showBack ? 'block' : 'none';
+        // Escapa texto antes de meterlo en HTML: los nombres ahora los escribe el usuario
+        function esc(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        function showTab(tab) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('nav-' + tab).classList.add('active');
-            history = [];
+        const byName = (a, b) => a.name.localeCompare(b.name, 'es');
 
-            if (tab === 'categories') {
-                showScreen('categories', 'Super Precios');
-                loadCategories();
-            } else if (tab === 'stores') {
-                showScreen('stores', 'Comercios');
-                loadStores();
-            } else if (tab === 'update') {
-                showScreen('update', 'Actualizar precio');
-                loadUpdateForm();
-            } else if (tab === 'admin') {
-                showScreen('admin', 'Administrar');
-                loadAdminScreen();
+        function money(n) {
+            return n == null ? '' : '$' + Number(n).toLocaleString('es-AR');
+        }
+
+        function plural(n, one, many) {
+            return `${n} ${n === 1 ? one : many}`;
+        }
+
+        async function api(path, options = {}) {
+            const res = await fetch(`${API}${path}`, options);
+            let data = null;
+            try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
+            if (!res.ok) {
+                const detail = data && data.detail;
+                let message = 'Error inesperado, intenta de nuevo';
+                if (typeof detail === 'string') {
+                    message = detail;
+                } else if (Array.isArray(detail) && detail.length) {
+                    // Errores de validacion de FastAPI (422)
+                    message = detail.map(d => d.msg).join(', ');
+                }
+                throw new Error(message);
+            }
+            return data;
+        }
+
+        // Ejecuta una accion contra la API, muestra el resultado y recarga la lista
+        async function runAction(path, method, okMessage, reload) {
+            try {
+                await api(path, { method });
+                showToast(okMessage);
+                await reload();
+                return true;
+            } catch (e) {
+                showToast(e.message, false);
+                return false;
             }
         }
-
-        function goBack() {
-            if (history.length > 0) {
-                const prev = history.pop();
-                prev();
-            }
-        }
-
-        // ── CATEGORÍAS ──────────────────────────────────────────
-
-        async function loadCategories() {
-            const res = await fetch(`${API}/products/categories`);
-            const cats = await res.json();
-            const grid = document.getElementById('categoryGrid');
-            grid.innerHTML = cats.map(c => `
-    <div class="category-card" onclick="openCategory('${c.code}', '${c.name}')">
-      <div class="icon">${CATEGORY_ICONS[c.code] || '📦'}</div>
-      <div class="name">${c.name}</div>
-    </div>
-  `).join('');
-        }
-
-        async function openCategory(code, name) {
-            history.push(() => showTab('categories'));
-            currentCategory = code;
-            showScreen('products', name, true);
-            document.getElementById('searchInput').value = '';
-            await loadProducts(code);
-        }
-
-        async function loadProducts(category) {
-            const res = await fetch(`${API}/products/?category=${category}`);
-            allProducts = await res.json();
-            renderProducts(allProducts);
-        }
-
-        function renderProducts(products) {
-            const list = document.getElementById('productList');
-            if (!products.length) {
-                list.innerHTML = '<div class="empty-state">Sin productos en esta categoria</div>';
-                return;
-            }
-            list.innerHTML = products.map(p => {
-                const cheapest = p.prices?.find(pr => pr.is_cheapest === 1);
-                const bestInfo = cheapest
-                    ? `Mas barato: ${cheapest.store_name} $${cheapest.amount?.toLocaleString('es-AR')}`
-                    : '';
-                return `
-      <div class="product-item" onclick="openProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-        <div class="product-name">${p.name}</div>
-        ${bestInfo ? `<div class="product-best">✓ ${bestInfo}</div>` : ''}
-      </div>
-    `;
-            }).join('');
-        }
-
-        function filterProducts() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
-        }
-
-        // ── DETALLE PRODUCTO ────────────────────────────────────
-
-        async function openProduct(id, name) {
-            history.push(() => openCategory(currentCategory, name));
-            showScreen('detail', name, true);
-            document.getElementById('detailContent').innerHTML = '<div class="loading">Cargando...</div>';
-
-            const res = await fetch(`${API}/products/${id}`);
-            const data = await res.json();
-
-            const prices = data.prices || [];
-            prices.sort((a, b) => a.amount - b.amount);
-
-            document.getElementById('detailContent').innerHTML = `
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${data.category}</p>
-    ${prices.map(p => {
-                const varHtml = p.variation_pct != null
-                    ? `<div class="price-variation ${p.variation_pct > 0 ? 'variation-up' : 'variation-down'}">
-             ${p.variation_pct > 0 ? '▲' : '▼'} ${Math.abs(p.variation_pct)}%
-           </div>` : '';
-                return `
-        <div class="price-card ${p.is_cheapest ? 'cheapest' : ''}">
-          <div>
-            <div class="price-store">
-              ${p.store_name}
-              ${p.is_cheapest ? '<span class="badge-cheapest">MAS BARATO</span>' : ''}
-            </div>
-            ${p.brand ? `<div class="price-brand">${p.brand}</div>` : ''}
-          </div>
-          <div>
-            <div class="price-amount ${p.is_cheapest ? 'cheapest' : ''}">
-              $${p.amount?.toLocaleString('es-AR')}
-            </div>
-            ${p.unit_price ? `<div class="price-unit">$${Math.round(p.unit_price).toLocaleString('es-AR')}/kg</div>` : ''}
-            ${varHtml}
-          </div>
-        </div>
-      `;
-            }).join('')}
-  `;
-        }
-
-        // ── COMERCIOS ───────────────────────────────────────────
-
-        async function loadStores() {
-            const res = await fetch(`${API}/stores/`);
-            const stores = await res.json();
-            document.getElementById('storeList').innerHTML = stores.map(s => `
-    <div class="store-item" onclick="openStore(${s.id}, '${s.name}')">
-      <div class="store-number">${s.number}</div>
-      <div>
-        <div style="font-weight:600">${s.name}</div>
-        <div style="font-size:12px;color:var(--muted)">Ver mejores precios</div>
-      </div>
-    </div>
-  `).join('');
-        }
-
-        async function openStore(id, name) {
-            history.push(() => showTab('stores'));
-            showScreen('detail', name, true);
-            document.getElementById('detailContent').innerHTML = '<div class="loading">Cargando...</div>';
-
-            const res = await fetch(`${API}/stores/${id}/best-prices`);
-            const data = await res.json();
-            const items = data.best_prices || [];
-
-            if (!items.length) {
-                document.getElementById('detailContent').innerHTML =
-                    '<div class="empty-state">Sin precios registrados</div>';
-                return;
-            }
-
-            const byCategory = {};
-            items.forEach(item => {
-                if (!byCategory[item.category]) byCategory[item.category] = [];
-                byCategory[item.category].push(item);
-            });
-
-            document.getElementById('detailContent').innerHTML = Object.entries(byCategory).map(([cat, prods]) => `
-    <div style="margin-bottom:20px">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">${cat}</p>
-      ${prods.map(p => `
-        <div class="price-card cheapest" style="margin-bottom:8px">
-          <div>
-            <div class="price-store">${p.product_name}</div>
-            ${p.brand ? `<div class="price-brand">${p.brand}</div>` : ''}
-          </div>
-          <div class="price-amount cheapest">$${p.amount?.toLocaleString('es-AR')}</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
-        }
-
-        // ── ACTUALIZAR PRECIO ────────────────────────────────────
-
-        async function loadUpdateForm() {
-            const [prodRes, storeRes] = await Promise.all([
-                fetch(`${API}/products/`),
-                fetch(`${API}/stores/`)
-            ]);
-            const products = await prodRes.json();
-            const stores = await storeRes.json();
-
-            document.getElementById('updateProduct').innerHTML =
-                '<option value="">Seleccionar producto...</option>' +
-                products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            document.getElementById('updateStore').innerHTML =
-                '<option value="">Seleccionar comercio...</option>' +
-                stores.map(s => `<option value="${s.id}">${s.number}. ${s.name}</option>`).join('');
-        }
-
-        async function submitPrice() {
-            const product_id = parseInt(document.getElementById('updateProduct').value);
-            const store_id = parseInt(document.getElementById('updateStore').value);
-            const amount = parseFloat(document.getElementById('updateAmount').value);
-            const brand = document.getElementById('updateBrand').value || null;
-
-            if (!product_id || !store_id || !amount) {
-                showToast('Completa todos los campos obligatorios', false);
-                return;
-            }
-
-            const res = await fetch(`${API}/prices/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product_id, store_id, amount, brand })
-            });
-
-            if (res.ok) {
-                showToast('Precio actualizado');
-                document.getElementById('updateAmount').value = '';
-                document.getElementById('updateBrand').value = '';
-            } else {
-                showToast('Error al guardar', false);
-            }
-        }
-
-        // ── TOAST ────────────────────────────────────────────────
 
         function showToast(msg, success = true) {
             const t = document.getElementById('toast');
@@ -800,103 +884,721 @@
             t.style.background = success ? 'var(--green)' : 'var(--red)';
             t.style.color = success ? '#000' : '#fff';
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            setTimeout(() => t.classList.remove('show'), success ? 2500 : 4000);
         }
 
-        // ── ADMINISTRAR ──────────────────────────────────────────
+        // ── MODAL REUTILIZABLE ───────────────────────────────────
+        // fields: [{ id, label, type ('text' | 'number' | 'select'), value, placeholder, options: [{value, label}] }]
+        // onSave recibe { id: valor } y devuelve false si hubo un error (el modal queda abierto)
 
-        async function loadAdminScreen() {
-            const [catRes, prodRes, storeRes] = await Promise.all([
-                fetch(`${API}/products/categories`),
-                fetch(`${API}/products/`),
-                fetch(`${API}/stores/`)
-            ]);
-            const categories = await catRes.json();
-            const products = await prodRes.json();
-            const stores = await storeRes.json();
+        function openModal({ title, fields, saveLabel = 'Guardar cambios', onSave }) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalSave').textContent = saveLabel;
 
-            document.getElementById('newProductCategory').innerHTML =
-                '<option value="">Seleccionar...</option>' +
-                categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('modalFields').innerHTML = fields.map(f => {
+                if (f.type === 'select') {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label" for="mf-${f.id}">${esc(f.label)}</label>
+                            <select class="form-select" id="mf-${f.id}">
+                                ${f.options.map(o => `
+                                    <option value="${esc(o.value)}" ${String(o.value) === String(f.value) ? 'selected' : ''}>${esc(o.label)}</option>
+                                `).join('')}
+                            </select>
+                        </div>`;
+                }
+                return `
+                    <div class="form-group">
+                        <label class="form-label" for="mf-${f.id}">${esc(f.label)}</label>
+                        <input class="form-input" id="mf-${f.id}" type="${f.type || 'text'}"
+                            value="${esc(f.value ?? '')}" placeholder="${esc(f.placeholder ?? '')}" autocomplete="off">
+                    </div>`;
+            }).join('');
 
-            document.getElementById('deleteProductSelect').innerHTML =
-                '<option value="">Seleccionar producto...</option>' +
-                products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            modalSubmit = async () => {
+                const values = {};
+                fields.forEach(f => {
+                    values[f.id] = document.getElementById('mf-' + f.id).value.trim();
+                });
+                const result = await onSave(values);
+                if (result !== false) closeModal();
+            };
 
-            document.getElementById('deleteStoreSelect').innerHTML =
+            // Enter dentro del modal = guardar
+            document.getElementById('modalFields').onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitModal();
+                }
+            };
+
+            document.getElementById('modal').classList.add('open');
+            const first = document.querySelector('#modalFields input, #modalFields select');
+            if (first) setTimeout(() => first.focus(), 50);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('open');
+            modalSubmit = null;
+        }
+
+        async function submitModal() {
+            if (!modalSubmit) return;
+            const btn = document.getElementById('modalSave');
+            btn.disabled = true;
+            try {
+                await modalSubmit();
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ── NAVEGACION ───────────────────────────────────────────
+
+        function showScreen(id, title) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + id).classList.add('active');
+            document.getElementById('headerTitle').textContent = title;
+            // La flecha "atras" aparece solo si hay algo a lo que volver
+            document.getElementById('backBtn').style.display = backStack.length ? 'block' : 'none';
+            window.scrollTo(0, 0);
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('nav-' + tab).classList.add('active');
+            backStack = [];
+
+            if (tab === 'categories') showCategoriesView();
+            else if (tab === 'products') showProductsView(null);
+            else if (tab === 'stores') showStoresView();
+            else if (tab === 'update') showUpdateView();
+        }
+
+        function goBack() {
+            const previous = backStack.pop();
+            if (previous) previous();
+        }
+
+        // ── CATEGORIAS ───────────────────────────────────────────
+
+        async function showCategoriesView() {
+            showScreen('categories', 'Super Precios');
+            document.getElementById('categoryGrid').innerHTML = '<div class="loading">Cargando...</div>';
+            await loadCategories();
+        }
+
+        async function loadCategories() {
+            const grid = document.getElementById('categoryGrid');
+            try {
+                categories = (await api('/categories/')).sort(byName);
+            } catch (e) {
+                grid.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+                return;
+            }
+
+            if (!categories.length) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1">Todavia no hay categorias. Crea la primera con el boton "+ Nueva".</div>';
+                return;
+            }
+
+            grid.innerHTML = categories.map(c => `
+                <div class="category-card">
+                    <div class="category-main" onclick="openCategory(${c.id})">
+                        <div class="icon">${CATEGORY_ICONS[c.code] || '📦'}</div>
+                        <div class="name">${esc(c.name)}</div>
+                        <div class="count">${plural(c.product_count, 'producto', 'productos')}</div>
+                    </div>
+                    <div class="card-actions">
+                        <button onclick="editCategory(${c.id})">Editar</button>
+                        <button onclick="deleteCategory(${c.id})">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createCategory() {
+            openModal({
+                title: 'Nueva categoria',
+                saveLabel: 'Crear categoria',
+                fields: [{ id: 'name', label: 'Nombre', placeholder: 'Ej: Panificados' }],
+                onSave: async ({ name }) => {
+                    if (!name) { showToast('Escribi el nombre de la categoria', false); return false; }
+                    return runAction(
+                        `/categories/?name=${encodeURIComponent(name)}`,
+                        'POST', 'Categoria creada', loadCategories
+                    );
+                }
+            });
+        }
+
+        function editCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+            openModal({
+                title: 'Editar categoria',
+                fields: [{ id: 'name', label: 'Nombre', value: cat.name }],
+                onSave: async ({ name }) => {
+                    if (!name) { showToast('Escribi el nombre de la categoria', false); return false; }
+                    return runAction(
+                        `/categories/${id}?name=${encodeURIComponent(name)}`,
+                        'PUT', 'Categoria actualizada', loadCategories
+                    );
+                }
+            });
+        }
+
+        async function deleteCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+            if (!confirm(`¿Eliminar la categoria "${cat.name}"?`)) return;
+            await runAction(`/categories/${id}`, 'DELETE', 'Categoria eliminada', loadCategories);
+        }
+
+        function openCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+            backStack.push(() => showCategoriesView());
+            showProductsView(cat);
+        }
+
+        // ── PRODUCTOS ────────────────────────────────────────────
+        // category = null  -> pestaña Productos: todos, agrupados en desplegables por categoria
+        // category = {...} -> lista plana de los productos de esa categoria
+
+        async function showProductsView(category, search = '') {
+            currentCategory = category;
+            showScreen('products', category ? category.name : 'Productos');
+            document.getElementById('searchInput').value = search;
+            document.getElementById('productList').innerHTML = '<div class="loading">Cargando...</div>';
+            await loadProducts();
+        }
+
+        async function loadProducts() {
+            const list = document.getElementById('productList');
+            try {
+                const [prods, cats] = await Promise.all([api('/products/'), api('/categories/')]);
+                allProducts = prods;
+                categories = cats.sort(byName);
+            } catch (e) {
+                list.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+                return;
+            }
+            renderProducts();
+        }
+
+        function productRow(p) {
+            const cheapest = (p.prices || []).find(pr => pr.is_cheapest === 1);
+            const best = cheapest ? `Mas barato: ${esc(cheapest.store_name)} ${money(cheapest.amount)}` : '';
+            return `
+                <div class="product-item" onclick="openProduct(${p.id})">
+                    <div class="product-name">${esc(p.name)}</div>
+                    ${best ? `<div class="product-best">✓ ${best}</div>` : ''}
+                    <div class="item-actions">
+                        <button class="btn-small" onclick="event.stopPropagation(); editProduct(${p.id})">Editar</button>
+                        <button class="btn-small danger" onclick="event.stopPropagation(); deleteProduct(${p.id})">Eliminar</button>
+                    </div>
+                </div>`;
+        }
+
+        function renderProducts() {
+            const list = document.getElementById('productList');
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            let products = allProducts;
+            if (currentCategory) products = products.filter(p => p.category.id === currentCategory.id);
+            if (q) products = products.filter(p => p.name.toLowerCase().includes(q));
+            products = [...products].sort(byName);
+
+            document.getElementById('productsCount').textContent = plural(products.length, 'producto', 'productos');
+
+            if (!products.length) {
+                list.innerHTML = `<div class="empty-state">${q ? 'Ningun producto coincide con la busqueda' : 'Todavia no hay productos. Crea el primero con el boton "+ Nuevo".'}</div>`;
+                return;
+            }
+
+            // Dentro de una categoria: lista plana
+            if (currentCategory) {
+                list.innerHTML = products.map(productRow).join('');
+                return;
+            }
+
+            // Pestaña Productos: desplegables por categoria, en orden alfabetico
+            const openBefore = new Set(
+                [...list.querySelectorAll('details[open]')].map(d => d.dataset.cat)
+            );
+
+            const groups = {};
+            products.forEach(p => {
+                const key = p.category.name;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(p);
+            });
+
+            list.innerHTML = Object.keys(groups)
+                .sort((a, b) => a.localeCompare(b, 'es'))
+                .map(cat => `
+                    <details class="accordion" data-cat="${esc(cat)}" ${(q || openBefore.has(cat)) ? 'open' : ''}>
+                        <summary>
+                            <span class="acc-name">${esc(cat)}</span>
+                            <span class="acc-count">${groups[cat].length}</span>
+                        </summary>
+                        <div class="acc-body">${groups[cat].map(productRow).join('')}</div>
+                    </details>
+                `).join('');
+        }
+
+        function categoryOptions() {
+            return categories.map(c => ({ value: c.id, label: c.name }));
+        }
+
+        function createProduct() {
+            if (!categories.length) {
+                showToast('Primero crea una categoria', false);
+                return;
+            }
+            openModal({
+                title: 'Nuevo producto',
+                saveLabel: 'Crear producto',
+                fields: [
+                    { id: 'name', label: 'Nombre', placeholder: 'Ej: Leche entera' },
+                    {
+                        id: 'category', label: 'Categoria', type: 'select',
+                        options: categoryOptions(),
+                        value: currentCategory ? currentCategory.id : ''
+                    },
+                ],
+                onSave: async ({ name, category }) => {
+                    if (!name) { showToast('Escribi el nombre del producto', false); return false; }
+                    return runAction(
+                        `/products/?name=${encodeURIComponent(name)}&category_id=${category}`,
+                        'POST', 'Producto creado', loadProducts
+                    );
+                }
+            });
+        }
+
+        function editProduct(id) {
+            const product = allProducts.find(p => p.id === id);
+            if (!product) return;
+            openModal({
+                title: 'Editar producto',
+                fields: [
+                    { id: 'name', label: 'Nombre', value: product.name },
+                    {
+                        id: 'category', label: 'Categoria', type: 'select',
+                        options: categoryOptions(), value: product.category.id
+                    },
+                ],
+                onSave: async ({ name, category }) => {
+                    if (!name) { showToast('Escribi el nombre del producto', false); return false; }
+                    return runAction(
+                        `/products/${id}?name=${encodeURIComponent(name)}&category_id=${category}`,
+                        'PUT', 'Producto actualizado', loadProducts
+                    );
+                }
+            });
+        }
+
+        async function deleteProduct(id) {
+            const product = allProducts.find(p => p.id === id);
+            if (!product) return;
+            if (!confirm(`¿Eliminar "${product.name}"? Tambien se borran sus precios.`)) return;
+            await runAction(`/products/${id}`, 'DELETE', 'Producto eliminado', loadProducts);
+        }
+
+        // ── DETALLE DE PRODUCTO ──────────────────────────────────
+
+        async function openProduct(id) {
+            const category = currentCategory;
+            const search = document.getElementById('searchInput').value;
+            backStack.push(() => showProductsView(category, search));
+
+            const known = allProducts.find(p => p.id === id);
+            showScreen('detail', known ? known.name : 'Detalle');
+            const content = document.getElementById('detailContent');
+            content.innerHTML = '<div class="loading">Cargando...</div>';
+
+            let data;
+            try {
+                data = await api(`/products/${id}`);
+            } catch (e) {
+                content.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+                return;
+            }
+
+            document.getElementById('headerTitle').textContent = data.product_name;
+
+            const prices = (data.prices || []).sort((a, b) => a.amount - b.amount);
+
+            if (!prices.length) {
+                content.innerHTML = `
+                    <p class="hint">${esc(data.category)}</p>
+                    <div class="empty-state">Este producto todavia no tiene precios. Cargalos desde la pestaña Actualizar.</div>`;
+                return;
+            }
+
+            content.innerHTML = `
+                <p class="hint">${esc(data.category)}</p>
+                ${prices.map(p => {
+                    const varHtml = p.variation_pct != null
+                        ? `<div class="price-variation ${p.variation_pct > 0 ? 'variation-up' : 'variation-down'}">
+                               ${p.variation_pct > 0 ? '▲' : '▼'} ${Math.abs(p.variation_pct)}%
+                           </div>` : '';
+                    return `
+                        <div class="price-card ${p.is_cheapest ? 'cheapest' : ''}">
+                            <div>
+                                <div class="price-store">
+                                    ${esc(p.store_name)}
+                                    ${p.is_cheapest ? '<span class="badge-cheapest">MAS BARATO</span>' : ''}
+                                </div>
+                                ${p.brand ? `<div class="price-brand">${esc(p.brand)}</div>` : ''}
+                            </div>
+                            <div>
+                                <div class="price-amount ${p.is_cheapest ? 'cheapest' : ''}">${money(p.amount)}</div>
+                                ${p.unit_price ? `<div class="price-unit">${money(Math.round(p.unit_price))}/kg</div>` : ''}
+                                ${varHtml}
+                            </div>
+                        </div>`;
+                }).join('')}
+            `;
+        }
+
+        // ── COMERCIOS ────────────────────────────────────────────
+
+        async function showStoresView() {
+            showScreen('stores', 'Comercios');
+            document.getElementById('storeList').innerHTML = '<div class="loading">Cargando...</div>';
+            await loadStores();
+        }
+
+        async function loadStores() {
+            const list = document.getElementById('storeList');
+            try {
+                stores = await api('/stores/');
+            } catch (e) {
+                list.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+                return;
+            }
+
+            if (!stores.length) {
+                list.innerHTML = '<div class="empty-state">Todavia no hay comercios. Crea el primero con el boton "+ Nuevo".</div>';
+                return;
+            }
+
+            list.innerHTML = stores.map(s => `
+                <div class="store-item" onclick="openStore(${s.id})">
+                    <div class="store-number">${esc(s.number)}</div>
+                    <div class="store-info">
+                        <div style="font-weight:600">${esc(s.name)}</div>
+                        <div style="font-size:12px;color:var(--muted)">Ver precios</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-small" onclick="event.stopPropagation(); editStore(${s.id})">Editar</button>
+                        <button class="btn-small danger" onclick="event.stopPropagation(); deleteStore(${s.id})">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createStore() {
+            const nextNumber = stores.length ? Math.max(...stores.map(s => s.number)) + 1 : 1;
+            openModal({
+                title: 'Nuevo comercio',
+                saveLabel: 'Crear comercio',
+                fields: [
+                    { id: 'number', label: 'Numero', type: 'number', value: nextNumber },
+                    { id: 'name', label: 'Nombre', placeholder: 'Ej: Dia' },
+                ],
+                onSave: async ({ number, name }) => {
+                    if (!name || !number) { showToast('Completa numero y nombre', false); return false; }
+                    return runAction(
+                        `/stores/?name=${encodeURIComponent(name)}&number=${number}`,
+                        'POST', 'Comercio creado', loadStores
+                    );
+                }
+            });
+        }
+
+        function editStore(id) {
+            const store = stores.find(s => s.id === id);
+            if (!store) return;
+            openModal({
+                title: 'Editar comercio',
+                fields: [
+                    { id: 'number', label: 'Numero', type: 'number', value: store.number },
+                    { id: 'name', label: 'Nombre', value: store.name },
+                ],
+                onSave: async ({ number, name }) => {
+                    if (!name || !number) { showToast('Completa numero y nombre', false); return false; }
+                    return runAction(
+                        `/stores/${id}?name=${encodeURIComponent(name)}&number=${number}`,
+                        'PUT', 'Comercio actualizado', loadStores
+                    );
+                }
+            });
+        }
+
+        async function deleteStore(id) {
+            const store = stores.find(s => s.id === id);
+            if (!store) return;
+            if (!confirm(`¿Eliminar "${store.name}"? Tambien se borran todos los precios cargados en este comercio.`)) return;
+            await runAction(`/stores/${id}`, 'DELETE', 'Comercio eliminado', loadStores);
+        }
+
+        // Detalle de un comercio: todos los productos con precio ahi, en desplegables por categoria
+        async function openStore(id) {
+            backStack.push(() => showStoresView());
+
+            const known = stores.find(s => s.id === id);
+            showScreen('detail', known ? known.name : 'Comercio');
+            const content = document.getElementById('detailContent');
+            content.innerHTML = '<div class="loading">Cargando...</div>';
+
+            try {
+                const data = await api(`/stores/${id}/prices`);
+                storeDetail = { items: data.prices || [], filter: 'all' };
+            } catch (e) {
+                content.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+                return;
+            }
+
+            renderStoreDetail();
+        }
+
+        function setStoreFilter(filter) {
+            storeDetail.filter = filter;
+            renderStoreDetail();
+        }
+
+        function renderStoreDetail() {
+            const content = document.getElementById('detailContent');
+            const all = storeDetail.items;
+
+            if (!all.length) {
+                content.innerHTML = '<div class="empty-state">Este comercio todavia no tiene precios cargados. Cargalos desde la pestaña Actualizar.</div>';
+                return;
+            }
+
+            const cheapestCount = all.filter(i => i.is_cheapest).length;
+            const items = storeDetail.filter === 'cheapest' ? all.filter(i => i.is_cheapest) : all;
+
+            // Recordar que desplegables estaban abiertos al cambiar de filtro
+            const openBefore = new Set(
+                [...content.querySelectorAll('details[open]')].map(d => d.dataset.cat)
+            );
+
+            const byCategory = {};
+            items.forEach(item => {
+                if (!byCategory[item.category]) byCategory[item.category] = [];
+                byCategory[item.category].push(item);
+            });
+
+            const accordions = Object.keys(byCategory)
+                .sort((a, b) => a.localeCompare(b, 'es'))
+                .map(cat => {
+                    const prods = byCategory[cat].sort((a, b) => a.product_name.localeCompare(b.product_name, 'es'));
+                    return `
+                        <details class="accordion" data-cat="${esc(cat)}" ${openBefore.has(cat) ? 'open' : ''}>
+                            <summary>
+                                <span class="acc-name">${esc(cat)}</span>
+                                <span class="acc-count">${prods.length}</span>
+                            </summary>
+                            <div class="acc-body">
+                                ${prods.map(p => `
+                                    <div class="price-card ${p.is_cheapest ? 'cheapest' : ''}">
+                                        <div>
+                                            <div class="price-store">
+                                                ${esc(p.product_name)}
+                                                ${p.is_cheapest ? '<span class="badge-cheapest">MAS BARATO</span>' : ''}
+                                            </div>
+                                            ${p.brand ? `<div class="price-brand">${esc(p.brand)}</div>` : ''}
+                                            ${!p.is_cheapest && p.cheapest_store
+                                                ? `<div class="price-hint">Mas barato en ${esc(p.cheapest_store)}: ${money(p.cheapest_amount)}</div>`
+                                                : ''}
+                                        </div>
+                                        <div class="price-amount ${p.is_cheapest ? 'cheapest' : ''}">${money(p.amount)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>`;
+                }).join('');
+
+            content.innerHTML = `
+                <div class="segmented">
+                    <button class="seg-btn ${storeDetail.filter === 'all' ? 'active' : ''}" onclick="setStoreFilter('all')">Todos (${all.length})</button>
+                    <button class="seg-btn ${storeDetail.filter === 'cheapest' ? 'active' : ''}" onclick="setStoreFilter('cheapest')">Mas baratos (${cheapestCount})</button>
+                </div>
+                ${items.length ? accordions : '<div class="empty-state">Este comercio no tiene el mejor precio en ningun producto</div>'}
+            `;
+        }
+
+        // ── ACTUALIZAR PRECIO ────────────────────────────────────
+        // Flujo: categoria -> producto (solo los de esa categoria) -> comercio -> precio.
+        // Guardar crea o reemplaza el precio de ESE producto en ESE comercio;
+        // los precios del mismo producto en otros comercios no se tocan.
+
+        async function showUpdateView() {
+            showScreen('update', 'Actualizar precio');
+            await loadUpdateForm();
+        }
+
+        async function loadUpdateForm() {
+            let storeList;
+            try {
+                [updateProducts, storeList] = await Promise.all([api('/products/'), api('/stores/')]);
+            } catch (e) {
+                showToast(e.message, false);
+                return;
+            }
+
+            // Solo categorias que tienen productos
+            const cats = {};
+            updateProducts.forEach(p => { cats[p.category.id] = p.category.name; });
+            const catList = Object.entries(cats).map(([id, name]) => ({ id, name })).sort(byName);
+
+            document.getElementById('updateCategory').innerHTML =
+                '<option value="">Seleccionar categoria...</option>' +
+                catList.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+
+            const productSelect = document.getElementById('updateProduct');
+            productSelect.innerHTML = '<option value="">Primero elegi una categoria</option>';
+            productSelect.disabled = true;
+
+            document.getElementById('updateStore').innerHTML =
                 '<option value="">Seleccionar comercio...</option>' +
-                stores.map(s => `<option value="${s.id}">${s.number}. ${s.name}</option>`).join('');
+                storeList.map(s => `<option value="${s.id}">${esc(s.number)}. ${esc(s.name)}</option>`).join('');
+
+            document.getElementById('updateAmount').value = '';
+            document.getElementById('updateAmount').placeholder = 'Ej: 2500';
+            document.getElementById('updateBrand').value = '';
+            document.getElementById('updateHint').innerHTML = '';
         }
 
-        async function createProduct() {
-            const name = document.getElementById('newProductName').value.trim();
-            const category_id = document.getElementById('newProductCategory').value;
-            if (!name || !category_id) {
-                showToast('Completa nombre y categoria', false);
+        function selectedUpdateProduct() {
+            const id = parseInt(document.getElementById('updateProduct').value);
+            return updateProducts.find(p => p.id === id) || null;
+        }
+
+        // Precio ya cargado para el producto y comercio elegidos (o null si no hay)
+        function selectedUpdatePrice() {
+            const product = selectedUpdateProduct();
+            const storeId = parseInt(document.getElementById('updateStore').value);
+            if (!product || !storeId) return null;
+            return (product.prices || []).find(pr => pr.store_id === storeId) || null;
+        }
+
+        function onUpdateCategoryChange() {
+            const categoryId = parseInt(document.getElementById('updateCategory').value);
+            const productSelect = document.getElementById('updateProduct');
+
+            if (!categoryId) {
+                productSelect.innerHTML = '<option value="">Primero elegi una categoria</option>';
+                productSelect.disabled = true;
+            } else {
+                const products = updateProducts
+                    .filter(p => p.category.id === categoryId)
+                    .sort(byName);
+                productSelect.innerHTML =
+                    '<option value="">Seleccionar producto...</option>' +
+                    products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+                productSelect.disabled = false;
+            }
+            onUpdateProductChange();
+        }
+
+        function onUpdateProductChange() {
+            document.getElementById('updateAmount').value = '';
+            refreshUpdateHint();
+            prefillFromExisting();
+        }
+
+        function onUpdateStoreChange() {
+            refreshUpdateHint();
+            prefillFromExisting();
+        }
+
+        // Si el comercio ya tiene precio: muestra el actual como referencia y precarga la marca
+        function prefillFromExisting() {
+            const price = selectedUpdatePrice();
+            document.getElementById('updateAmount').placeholder = price ? `Actual: ${price.amount}` : 'Ej: 2500';
+            document.getElementById('updateBrand').value = price && price.brand ? price.brand : '';
+        }
+
+        function refreshUpdateHint() {
+            const hint = document.getElementById('updateHint');
+            const product = selectedUpdateProduct();
+            if (!product) {
+                hint.innerHTML = '';
                 return;
             }
-            const res = await fetch(`${API}/products/?name=${encodeURIComponent(name)}&category_id=${category_id}`, {
-                method: 'POST'
-            });
-            if (res.ok) {
-                showToast('Producto creado');
-                document.getElementById('newProductName').value = '';
-                loadAdminScreen();
-            } else {
-                const err = await res.json();
-                showToast(err.detail || 'Error al crear', false);
-            }
-        }
 
-        async function createStore() {
-            const name = document.getElementById('newStoreName').value.trim();
-            const number = document.getElementById('newStoreNumber').value;
-            if (!name || !number) {
-                showToast('Completa nombre y numero', false);
+            const storeId = parseInt(document.getElementById('updateStore').value) || null;
+            const prices = product.prices || [];
+
+            if (!prices.length) {
+                hint.innerHTML = `
+                    <div class="update-hint">
+                        <p class="hint-title">Este producto todavia no tiene precios cargados</p>
+                    </div>`;
                 return;
             }
-            const res = await fetch(`${API}/stores/?name=${encodeURIComponent(name)}&number=${number}`, {
-                method: 'POST'
-            });
-            if (res.ok) {
-                showToast('Comercio creado');
-                document.getElementById('newStoreName').value = '';
-                document.getElementById('newStoreNumber').value = '';
-                loadAdminScreen();
-            } else {
-                const err = await res.json();
-                showToast(err.detail || 'Error al crear', false);
+
+            let note = '';
+            if (storeId) {
+                note = selectedUpdatePrice()
+                    ? 'Guardar reemplaza el precio de este comercio. Los demas comercios no cambian.'
+                    : 'Este comercio todavia no tiene precio para este producto: se agrega uno nuevo. Los demas comercios no cambian.';
             }
+
+            hint.innerHTML = `
+                <div class="update-hint">
+                    <p class="hint-title">Precios actuales</p>
+                    ${prices.map(pr => `
+                        <div class="hint-row ${pr.store_id === storeId ? 'selected' : ''}">
+                            <span>${esc(pr.store_name)}</span>
+                            <span>${money(pr.amount)}</span>
+                        </div>
+                    `).join('')}
+                    ${note ? `<p class="hint-note">${note}</p>` : ''}
+                </div>`;
         }
 
-        async function deleteProduct() {
-            const id = document.getElementById('deleteProductSelect').value;
-            if (!id) { showToast('Selecciona un producto', false); return; }
-            if (!confirm('¿Eliminar este producto?')) return;
-            const res = await fetch(`${API}/products/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                showToast('Producto eliminado');
-                loadAdminScreen();
-            } else {
-                showToast('Error al eliminar', false);
-            }
-        }
+        async function submitPrice() {
+            const product_id = parseInt(document.getElementById('updateProduct').value);
+            const store_id = parseInt(document.getElementById('updateStore').value);
+            const amount = parseFloat(document.getElementById('updateAmount').value);
+            const brand = document.getElementById('updateBrand').value.trim() || null;
 
-        async function deleteStore() {
-            const id = document.getElementById('deleteStoreSelect').value;
-            if (!id) { showToast('Selecciona un comercio', false); return; }
-            if (!confirm('¿Eliminar este comercio?')) return;
-            const res = await fetch(`${API}/stores/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                showToast('Comercio eliminado');
-                loadAdminScreen();
-            } else {
-                showToast('Error al eliminar', false);
+            if (!product_id || !store_id || !amount) {
+                showToast('Completa producto, comercio y precio', false);
+                return;
             }
+
+            try {
+                await api('/prices/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id, store_id, amount, brand })
+                });
+            } catch (e) {
+                showToast(e.message, false);
+                return;
+            }
+
+            showToast('Precio guardado');
+            document.getElementById('updateAmount').value = '';
+
+            // Recargar los precios para que "Precios actuales" refleje lo recien guardado
+            try {
+                updateProducts = await api('/products/');
+            } catch (_) { /* si falla, se recarga al volver a abrir la pantalla */ }
+            refreshUpdateHint();
+            prefillFromExisting();
         }
 
         // ── INIT ─────────────────────────────────────────────────
-        loadCategories();
+        showCategoriesView();
     </script>
 </body>
 
