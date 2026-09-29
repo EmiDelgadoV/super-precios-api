@@ -2,20 +2,27 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/prices", tags=["Precios"])
 
 
 @router.post("/")
-def update_price(payload: schemas.PriceUpdate, db: Session = Depends(get_db)):
+def update_price(
+    payload: schemas.PriceUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     product = db.query(models.Product).filter(
-        models.Product.id == payload.product_id
+        models.Product.id == payload.product_id,
+        models.Product.owner_id == current_user.id,
     ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
     store = db.query(models.Store).filter(
-        models.Store.id == payload.store_id
+        models.Store.id == payload.store_id,
+        models.Store.owner_id == current_user.id,
     ).first()
     if not store:
         raise HTTPException(status_code=404, detail="Comercio no encontrado")

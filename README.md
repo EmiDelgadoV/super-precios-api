@@ -1,21 +1,23 @@
 # Super Precios API
 
-Comparador de precios de supermercados. Nace de una planilla Excel real que se usaba para anotar en qué comercio del barrio conviene comprar cada producto, y la convierte en una API con un frontend web pensado para usarse desde el celular.
+Comparador de precios de supermercados. Nace de una planilla Excel real que se usaba para anotar en qué comercio del barrio conviene comprar cada producto, y la convierte en una API multiusuario con un frontend web pensado para usarse desde el celular.
 
-**Estado: pre-alpha (v0.1.0).** Lo principal funciona, pero faltan piezas (ver "Limitaciones y próximos pasos") y puede haber cambios grandes entre versiones.
+**Estado: pre-alpha, en desarrollo activo.** Cada cuenta ve y administra únicamente sus propios datos. Lo principal funciona, pero faltan piezas (ver "Limitaciones y próximos pasos").
 
 ## Qué hace
 
-- Registra categorías, productos y comercios, con crear, editar y eliminar en cada sección.
+- Cuentas de usuario con registro por mail y login, con contraseñas hasheadas y sesión por token (JWT).
+- Cada cuenta administra sus propias categorías, productos y comercios, sin ver los de otras cuentas.
 - Guarda un precio por cada producto en cada comercio, con marca, precio por kg y variación respecto del precio anterior.
 - Marca automáticamente en qué comercio está más barato cada producto.
 - Muestra, para cada comercio, todos los productos con precio ahí, agrupados por categoría, con un filtro para ver solo donde ese comercio es el más barato.
-- Permite actualizar un precio eligiendo categoría, producto y comercio, y muestra los precios actuales antes de guardar.
+- Permite actualizar un precio eligiendo categoría, producto y comercio, mostrando los precios actuales antes de guardar.
 
 ## Stack
 
 - Python, FastAPI y Uvicorn
 - SQLAlchemy con SQLite por defecto y PostgreSQL opcional
+- Autenticación con JWT y contraseñas hasheadas con bcrypt
 - Frontend en HTML, CSS y JavaScript puro, servido por la misma API
 - pandas y openpyxl para importar datos desde Excel
 - pytest y httpx para tests (instalados, todavía sin tests escritos)
@@ -43,20 +45,32 @@ source venv/Scripts/activate
 source venv/bin/activate
 ```
 
-Instalar dependencias, cargar los datos del Excel y levantar el servidor:
+Instalar dependencias y levantar el servidor:
 
 ```bash
 pip install -r requirements.txt
-python import_excel.py
 uvicorn app.main:app --reload
 ```
 
 Luego abrir:
 
-- Frontend: http://127.0.0.1:8000
+- Frontend: http://127.0.0.1:8000 (pide crear una cuenta o iniciar sesión antes de mostrar nada)
 - Documentación interactiva de la API: http://127.0.0.1:8000/docs
 
-No hace falta ninguna configuración previa: sin archivo `.env`, la app usa una base SQLite (`superprecios.db`) que se crea sola en la raíz del proyecto.
+Sin archivo `.env`, la app usa una base SQLite (`superprecios.db`) que se crea sola en la raíz del proyecto.
+
+### Primer uso: crear tu cuenta y cargar datos
+
+1. En `/docs`, ejecutar `POST /auth/register` con tu mail y una contraseña (mínimo 8 caracteres).
+2. Importar los datos del Excel bajo esa cuenta:
+
+```bash
+python import_excel.py tu-mail@ejemplo.com
+```
+
+3. Abrir el frontend e iniciar sesión con ese mismo mail y contraseña.
+
+Cada cuenta que se registre arranca sin datos propios. Para que otra persona (por ejemplo, un familiar) vea los mismos productos y comercios, hay que repetir el paso 2 con su mail, una vez que su cuenta ya esté registrada.
 
 ## Configuración
 
@@ -65,40 +79,56 @@ Las variables se leen desde un archivo `.env` (hay un modelo en `.env.example`).
 | Variable | Descripción |
 |---|---|
 | `DATABASE_URL` | Conexión a la base. Si no se define, usa `sqlite:///./superprecios.db`. Para PostgreSQL: `postgresql+psycopg://usuario:password@localhost:5432/superprecios` |
-| `SECRET_KEY` | Reservada para la autenticación futura. Todavía no se usa. |
+| `SECRET_KEY` | Clave con la que se firman los tokens de sesión. **Tiene que ser secreta y distinta en cada entorno.** Si no se define, se usa un valor de desarrollo que no debe usarse en producción. `.env` nunca se sube al repositorio. |
 
 ## Importar datos desde Excel
 
-`import_excel.py` lee `Super25.xlsx`:
+`import_excel.py` lee `Super25.xlsx` y carga todo bajo la cuenta que se le indique como argumento:
+
+```bash
+python import_excel.py tu-mail@ejemplo.com
+```
+
+La cuenta tiene que existir de antes (registrada con `POST /auth/register`). El script lee:
 
 - Hoja `L`: comercios (número y nombre).
 - Hoja `B`: categorías, productos y precios.
 
-El script se puede ejecutar más de una vez: no duplica comercios, categorías, productos ni precios que ya existan. Con el archivo incluido carga 13 comercios, 19 categorías, 138 productos y 236 precios.
+Se puede ejecutar más de una vez para la misma cuenta: no duplica comercios, categorías, productos ni precios que ya existan. Con el archivo incluido carga 13 comercios, 19 categorías, 138 productos y 236 precios.
+
+## Cómo funciona la autenticación
+
+- El registro (`POST /auth/register`) guarda el mail en minúsculas y la contraseña procesada con bcrypt, que aplica un salt automático: nunca se guarda la contraseña original.
+- El login (`POST /auth/login`) devuelve un token JWT válido por 7 días.
+- Todas las demás rutas (categorías, productos, comercios, precios) exigen ese token en el header `Authorization: Bearer <token>` y devuelven 401 sin él o si venció.
+- Cada categoría, producto y comercio pertenece a la cuenta que lo creó. Un usuario no puede ver ni modificar los datos de otra cuenta, ni siquiera conociendo el ID exacto.
 
 ## Cómo funcionan los precios
 
-- Hay un solo precio por cada par producto y comercio. Guardar un precio para un par que ya existe lo reemplaza y conserva el valor anterior para calcular la variación. Los precios del mismo producto en otros comercios no se tocan.
+- Hay un solo precio por cada par producto y comercio, dentro de una misma cuenta. Guardar un precio para un par que ya existe lo reemplaza y conserva el valor anterior para calcular la variación. Los precios del mismo producto en otros comercios no se tocan.
 - El precio más barato de un producto es el menor `amount` mayor a cero entre sus precios. Si hay empate, todos los empatados quedan marcados. Se recalcula cada vez que se guarda un precio.
 - Eliminar un comercio elimina también sus precios y recalcula el más barato de los productos afectados.
 - No se puede eliminar una categoría que todavía tiene productos.
 
 ## API
 
-Todas las rutas están documentadas de forma interactiva en `/docs`.
+Todas las rutas están documentadas de forma interactiva en `/docs`. Las que no son de `/auth/` requieren estar logueado.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/categories/` | Lista categorías con su cantidad de productos |
+| POST | `/auth/register` | Crea una cuenta (mail + contraseña) |
+| POST | `/auth/login` | Devuelve un token de sesión |
+| GET | `/auth/me` | Datos de la cuenta logueada |
+| GET | `/categories/` | Lista las categorías del usuario, con su cantidad de productos |
 | POST | `/categories/?name=` | Crea una categoría (el código se genera solo) |
 | PUT | `/categories/{id}?name=` | Renombra una categoría |
 | DELETE | `/categories/{id}` | Elimina una categoría sin productos |
-| GET | `/products/` | Lista productos con sus precios (filtros `category` y `search`) |
+| GET | `/products/` | Lista productos del usuario con sus precios (filtros `category` y `search`) |
 | GET | `/products/{id}` | Precios de un producto en todos los comercios |
 | POST | `/products/?name=&category_id=` | Crea un producto |
 | PUT | `/products/{id}?name=&category_id=` | Edita nombre y categoría |
 | DELETE | `/products/{id}` | Elimina un producto y sus precios |
-| GET | `/stores/` | Lista comercios |
+| GET | `/stores/` | Lista comercios del usuario |
 | GET | `/stores/{id}` | Detalle de un comercio |
 | GET | `/stores/{id}/prices` | Todos los precios de un comercio, con el más barato de cada producto |
 | GET | `/stores/{id}/best-prices` | Solo los productos donde el comercio es el más barato |
@@ -115,17 +145,19 @@ super-precios-api/
 ├── app/
 │   ├── main.py            # App FastAPI y registro de routers
 │   ├── database.py        # Conexión y sesión de SQLAlchemy
-│   ├── models.py          # Modelos: Category, Product, Store, Price
+│   ├── models.py          # Modelos: User, Category, Product, Store, Price
 │   ├── schemas.py         # Schemas de Pydantic
+│   ├── auth.py            # Hashing de contraseñas y manejo de JWT
 │   ├── routers/
+│   │   ├── auth.py
 │   │   ├── categories.py
 │   │   ├── products.py
 │   │   ├── stores.py
 │   │   └── prices.py
 │   └── static/
-│       └── index.html     # Frontend
+│       └── index.html     # Frontend (login/registro + app)
 ├── tests/
-├── import_excel.py        # Carga inicial desde Excel
+├── import_excel.py        # Carga inicial desde Excel, bajo una cuenta
 ├── Super25.xlsx           # Datos de origen
 ├── requirements.txt
 ├── .env.example
@@ -136,7 +168,8 @@ super-precios-api/
 
 Limitaciones conocidas de la versión actual:
 
-- No hay autenticación: cualquiera con acceso a la API puede crear, editar y eliminar datos. Por ahora está pensada para uso local.
+- No hay recuperación de contraseña ni verificación de mail.
+- No hay forma de compartir datos entre dos cuentas (por ejemplo, entre familiares): cada una arranca vacía y hay que importarle los datos por separado.
 - No se puede eliminar un precio individual, solo reemplazarlo.
 - Las categorías nuevas usan un ícono por defecto en el frontend.
 - Al actualizar un precio sin informar la cantidad, el precio por kg guardado no se recalcula.
@@ -145,9 +178,9 @@ Limitaciones conocidas de la versión actual:
 
 Próximos pasos:
 
-- Tests con pytest.
+- Tests con pytest (adaptados para incluir login).
 - Docker y docker-compose.
-- Deploy en Render con PostgreSQL.
-- Autenticación con JWT.
+- Deploy con PostgreSQL.
 - Eliminar precios individuales.
-- Consultas en lenguaje natural mediante un LLM.
+- Función "viaje de compras": dada una lista de productos, sugerir en qué comercio conviene comprar la mayoría al mejor precio.
+- Integración con IA (llm-secure-api + Gemini) para pedir el viaje de compras en lenguaje natural.

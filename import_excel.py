@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 from app.database import SessionLocal, engine
 from app import models
@@ -27,8 +29,15 @@ CATEGORY_NAMES = {
 }
 
 
-def importar():
+def importar(owner_email: str):
     db = SessionLocal()
+
+    owner = db.query(models.User).filter(models.User.email == owner_email.lower()).first()
+    if not owner:
+        print(f"No existe ninguna cuenta con el mail {owner_email}")
+        print("Registrala primero con POST /auth/register (desde /docs) y volve a correr este script")
+        db.close()
+        return
 
     # ── COMERCIOS desde hoja L ───────────────────────────
     print("Importando comercios...")
@@ -42,11 +51,11 @@ def importar():
             numero = int(numero)
         except (ValueError, TypeError):
             continue
-        existente = db.query(models.Store).filter_by(number=numero).first()
+        existente = db.query(models.Store).filter_by(owner_id=owner.id, number=numero).first()
         if not existente:
-            db.add(models.Store(number=numero, name=str(nombre).strip()))
+            db.add(models.Store(owner_id=owner.id, number=numero, name=str(nombre).strip()))
     db.commit()
-    print(f"  >> {db.query(models.Store).count()} comercios cargados")
+    print(f"  >> {db.query(models.Store).filter_by(owner_id=owner.id).count()} comercios cargados")
 
     # ── CATEGORÍAS ───────────────────────────────────────
     print("Importando categorías...")
@@ -56,12 +65,12 @@ def importar():
         codigo = str(codigo).strip().upper()
         if not codigo:
             continue
-        existente = db.query(models.Category).filter_by(code=codigo).first()
+        existente = db.query(models.Category).filter_by(owner_id=owner.id, code=codigo).first()
         if not existente:
             nombre = CATEGORY_NAMES.get(codigo, codigo)
-            db.add(models.Category(code=codigo, name=nombre))
+            db.add(models.Category(owner_id=owner.id, code=codigo, name=nombre))
     db.commit()
-    print(f"  >> {db.query(models.Category).count()} categorias cargadas")
+    print(f"  >> {db.query(models.Category).filter_by(owner_id=owner.id).count()} categorias cargadas")
 
     # ── PRODUCTOS Y PRECIOS desde hoja B ────────────────
     print("Importando productos y precios...")
@@ -81,18 +90,18 @@ def importar():
             if amount is None:
                 continue
 
-            # Buscar categoría y comercio
-            category = db.query(models.Category).filter_by(code=cat_code).first()
-            store = db.query(models.Store).filter_by(number=store_num).first()
+            # Buscar categoría y comercio (dentro de los del dueño)
+            category = db.query(models.Category).filter_by(owner_id=owner.id, code=cat_code).first()
+            store = db.query(models.Store).filter_by(owner_id=owner.id, number=store_num).first()
             if not category or not store:
                 continue
 
             # Buscar o crear producto
             product = db.query(models.Product).filter_by(
-                name=prod_name, category_id=category.id
+                owner_id=owner.id, name=prod_name, category_id=category.id
             ).first()
             if not product:
-                product = models.Product(name=prod_name, category_id=category.id)
+                product = models.Product(owner_id=owner.id, name=prod_name, category_id=category.id)
                 db.add(product)
                 db.flush()
 
@@ -114,11 +123,15 @@ def importar():
             continue
 
     db.commit()
-    print(f"  >> {db.query(models.Product).count()} productos cargados")
+    print(f"  >> {db.query(models.Product).filter_by(owner_id=owner.id).count()} productos cargados")
     print(f"  >> {db.query(models.Price).count()} precios cargados")
     db.close()
     print("¡Importación completada!")
 
 
 if __name__ == "__main__":
-    importar()
+    if len(sys.argv) < 2:
+        print("Uso: python import_excel.py tu@mail.com")
+        print("(la cuenta tiene que existir: registrala antes con POST /auth/register desde /docs)")
+    else:
+        importar(sys.argv[1])

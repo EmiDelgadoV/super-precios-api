@@ -37,6 +37,37 @@
             margin: 0 auto;
         }
 
+        /* ── AUTENTICACION ── */
+        .auth-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .auth-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-error {
+            color: var(--red);
+            font-size: 13px;
+            margin: -8px 0 16px;
+        }
+
         /* ── HEADER ── */
         .header {
             position: sticky;
@@ -690,10 +721,35 @@
 
 <body>
 
+    <!-- PANTALLA DE INGRESO -->
+    <div class="auth-wrap" id="authWrap">
+        <div class="auth-card">
+            <p class="auth-title">Super Precios</p>
+            <div class="segmented" style="margin-bottom:20px">
+                <button class="seg-btn active" id="authTabLogin" onclick="setAuthTab('login')">Ingresar</button>
+                <button class="seg-btn" id="authTabRegister" onclick="setAuthTab('register')">Crear cuenta</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mail</label>
+                <input class="form-input" type="email" id="authEmail" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input class="form-input" type="password" id="authPassword" autocomplete="current-password">
+            </div>
+            <p class="auth-error" id="authError" style="display:none"></p>
+            <button class="btn btn-primary" id="authSubmit" onclick="submitAuth()">Ingresar</button>
+        </div>
+    </div>
+
+    <!-- APP (oculta hasta iniciar sesion) -->
+    <div id="app" style="display:none">
+
     <!-- HEADER -->
     <div class="header">
         <button class="back-btn" id="backBtn" onclick="goBack()">&#8592;</button>
         <h1 id="headerTitle">Super Precios</h1>
+        <button class="back-btn" style="display:block" onclick="logout()" title="Cerrar sesion">&#9099;</button>
     </div>
 
     <!-- PANTALLA: CATEGORIAS -->
@@ -799,8 +855,15 @@
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
+    </div> <!-- fin #app -->
+
     <script>
         const API = '';
+        const TOKEN_KEY = 'sp_token';
+
+        // Sesion
+        let authToken = localStorage.getItem(TOKEN_KEY);
+        let authMode = 'login'; // 'login' | 'register'
 
         // Datos en memoria (se recargan desde la API cada vez que se abre una pantalla)
         let categories = [];
@@ -847,8 +910,19 @@
             return `${n} ${n === 1 ? one : many}`;
         }
 
+        // Pedido autenticado: agrega el token guardado. Si el servidor lo rechaza
+        // (vencido o invalido), cierra la sesion y vuelve a la pantalla de login.
         async function api(path, options = {}) {
-            const res = await fetch(`${API}${path}`, options);
+            const headers = { ...(options.headers || {}) };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+            const res = await fetch(`${API}${path}`, { ...options, headers });
+
+            if (res.status === 401) {
+                logout();
+                throw new Error('Tu sesion expiro, ingresa de nuevo');
+            }
+
             let data = null;
             try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
             if (!res.ok) {
@@ -863,6 +937,99 @@
                 throw new Error(message);
             }
             return data;
+        }
+
+        // Igual que api(), pero sin exigir sesion previa: se usa para login y registro,
+        // donde todavia no hay ningun token guardado.
+        async function apiPublic(path, options = {}) {
+            const res = await fetch(`${API}${path}`, options);
+            let data = null;
+            try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
+            if (!res.ok) {
+                const detail = data && data.detail;
+                let message = 'Error inesperado, intenta de nuevo';
+                if (typeof detail === 'string') {
+                    message = detail;
+                } else if (Array.isArray(detail) && detail.length) {
+                    message = detail.map(d => d.msg).join(', ');
+                }
+                throw new Error(message);
+            }
+            return data;
+        }
+
+        // ── SESION ───────────────────────────────────────────────
+
+        function setAuthTab(mode) {
+            authMode = mode;
+            document.getElementById('authTabLogin').classList.toggle('active', mode === 'login');
+            document.getElementById('authTabRegister').classList.toggle('active', mode === 'register');
+            document.getElementById('authSubmit').textContent = mode === 'login' ? 'Ingresar' : 'Crear cuenta';
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        async function submitAuth() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+            errorEl.style.display = 'none';
+
+            if (!email || !password) {
+                errorEl.textContent = 'Completa mail y contraseña';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('authSubmit');
+            btn.disabled = true;
+            try {
+                if (authMode === 'register') {
+                    await apiPublic('/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                }
+                const loginData = await apiPublic('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                authToken = loginData.access_token;
+                localStorage.setItem(TOKEN_KEY, authToken);
+                enterApp();
+            } catch (e) {
+                errorEl.textContent = e.message;
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            localStorage.removeItem(TOKEN_KEY);
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('authWrap').style.display = 'flex';
+            document.getElementById('authPassword').value = '';
+        }
+
+        function enterApp() {
+            document.getElementById('authWrap').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            showCategoriesView();
+        }
+
+        // Al abrir la pagina: si hay un token guardado, valida que siga sirviendo
+        // antes de mostrar la app. Si no hay token o es invalido, queda en el login.
+        async function checkSession() {
+            if (!authToken) return;
+            try {
+                await api('/auth/me');
+                enterApp();
+            } catch (_) {
+                // token vencido o invalido: logout() ya lo limpio dentro de api()
+            }
         }
 
         // Ejecuta una accion contra la API, muestra el resultado y recarga la lista
@@ -1598,7 +1765,7 @@
         }
 
         // ── INIT ─────────────────────────────────────────────────
-        showCategoriesView();
+        checkSession();
     </script>
 </body>
 

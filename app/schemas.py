@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
@@ -54,3 +54,20 @@ class PriceUpdate(BaseModel):
     amount: float
     brand: Optional[str] = None
     quantity: Optional[float] = None
+
+
+# ── AUTENTICACION ─────────────────────────────────────────
+
+class UserCredentials(BaseModel):
+    """Se usa tanto para registro como para login: mismo par email + contraseña."""
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    model_config = {"from_attributes": True}
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

@@ -1,14 +1,33 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    stores = relationship("Store", back_populates="owner")
+    categories = relationship("Category", back_populates="owner")
+    products = relationship("Product", back_populates="owner")
+
+    def __str__(self):
+        return self.email
+
+
 class Store(Base):
     __tablename__ = "stores"
+    __table_args__ = (UniqueConstraint("owner_id", "number", name="uq_store_owner_number"),)
+
     id = Column(Integer, primary_key=True, index=True)
-    number = Column(Integer, unique=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    number = Column(Integer, nullable=False)
     name = Column(String, nullable=False)
+    owner = relationship("User", back_populates="stores")
     prices = relationship("Price", back_populates="store")
 
     def __str__(self):
@@ -17,9 +36,13 @@ class Store(Base):
 
 class Category(Base):
     __tablename__ = "categories"
+    __table_args__ = (UniqueConstraint("owner_id", "code", name="uq_category_owner_code"),)
+
     id = Column(Integer, primary_key=True, index=True)
-    code = Column(String, unique=True, nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    code = Column(String, nullable=False)
     name = Column(String, nullable=False)
+    owner = relationship("User", back_populates="categories")
     products = relationship("Product", back_populates="category")
 
     def __str__(self):
@@ -28,9 +51,13 @@ class Category(Base):
 
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = (UniqueConstraint("owner_id", "category_id", "name", name="uq_product_owner_category_name"),)
+
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"))
+    owner = relationship("User", back_populates="products")
     category = relationship("Category", back_populates="products")
     prices = relationship("Price", back_populates="product")
 

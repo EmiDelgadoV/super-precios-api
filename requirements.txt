@@ -7,3 +7,6 @@ pytest
 httpx
 pandas
 openpyxl
+bcrypt
+pyjwt
+pydantic[email]

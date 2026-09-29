@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/stores", tags=["Comercios"])
 
@@ -22,32 +23,50 @@ def _recalculate_cheapest(product_id: int, db: Session) -> None:
         p.is_cheapest = 1 if p.amount == lowest else 0
 
 
-@router.get("/", response_model=list[schemas.StoreResponse])
-def get_stores(db: Session = Depends(get_db)):
-    return db.query(models.Store).order_by(models.Store.number).all()
-
-
-@router.get("/{store_id}", response_model=schemas.StoreResponse)
-def get_store(store_id: int, db: Session = Depends(get_db)):
-    store = db.query(models.Store).filter(models.Store.id == store_id).first()
+def _get_owned_store(store_id: int, owner_id: int, db: Session) -> models.Store:
+    store = db.query(models.Store).filter(
+        models.Store.id == store_id,
+        models.Store.owner_id == owner_id,
+    ).first()
     if not store:
         raise HTTPException(status_code=404, detail="Comercio no encontrado")
     return store
 
 
+@router.get("/", response_model=list[schemas.StoreResponse])
+def get_stores(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return db.query(models.Store).filter(
+        models.Store.owner_id == current_user.id
+    ).order_by(models.Store.number).all()
+
+
+@router.get("/{store_id}", response_model=schemas.StoreResponse)
+def get_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return _get_owned_store(store_id, current_user.id, db)
+
+
 @router.get("/{store_id}/prices")
-def get_prices_by_store(store_id: int, db: Session = Depends(get_db)):
+def get_prices_by_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """
     Todos los productos que tienen precio en este comercio.
     Cada item indica si este comercio es el mas barato para ese producto y,
     si no lo es, en que comercio y a que precio esta mas barato.
     """
-    store = db.query(models.Store).filter(models.Store.id == store_id).first()
-    if not store:
-        raise HTTPException(status_code=404, detail="Comercio no encontrado")
+    store = _get_owned_store(store_id, current_user.id, db)
 
     prices = db.query(models.Price).filter(
-        models.Price.store_id == store_id
+        models.Price.store_id == store.id
     ).all()
 
     result = []
@@ -76,13 +95,15 @@ def get_prices_by_store(store_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{store_id}/best-prices")
-def get_best_prices_by_store(store_id: int, db: Session = Depends(get_db)):
-    store = db.query(models.Store).filter(models.Store.id == store_id).first()
-    if not store:
-        raise HTTPException(status_code=404, detail="Comercio no encontrado")
+def get_best_prices_by_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    store = _get_owned_store(store_id, current_user.id, db)
 
     prices = db.query(models.Price).filter(
-        models.Price.store_id == store_id,
+        models.Price.store_id == store.id,
         models.Price.is_cheapest == 1
     ).all()
 
@@ -103,19 +124,21 @@ def get_best_prices_by_store(store_id: int, db: Session = Depends(get_db)):
 def create_store(
     name: str,
     number: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     name = name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
 
     existing = db.query(models.Store).filter(
-        models.Store.number == number
+        models.Store.owner_id == current_user.id,
+        models.Store.number == number,
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Ya existe un comercio con ese número")
 
-    store = models.Store(name=name, number=number)
+    store = models.Store(name=name, number=number, owner_id=current_user.id)
     db.add(store)
     db.commit()
     db.refresh(store)
@@ -127,21 +150,19 @@ def update_store(
     store_id: int,
     name: str,
     number: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    store = db.query(models.Store).filter(
-        models.Store.id == store_id
-    ).first()
-    if not store:
-        raise HTTPException(status_code=404, detail="Comercio no encontrado")
+    store = _get_owned_store(store_id, current_user.id, db)
 
     name = name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
 
     duplicate = db.query(models.Store).filter(
+        models.Store.owner_id == current_user.id,
         models.Store.number == number,
-        models.Store.id != store_id
+        models.Store.id != store_id,
     ).first()
     if duplicate:
         raise HTTPException(status_code=400, detail="Ya existe un comercio con ese número")
@@ -154,24 +175,22 @@ def update_store(
 
 
 @router.delete("/{store_id}")
-def delete_store(store_id: int, db: Session = Depends(get_db)):
-    store = db.query(models.Store).filter(
-        models.Store.id == store_id
-    ).first()
-    if not store:
-        raise HTTPException(status_code=404, detail="Comercio no encontrado")
+def delete_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    store = _get_owned_store(store_id, current_user.id, db)
 
-    # Productos que tenian precio en este comercio: hay que recalcular su "mas barato"
     affected_product_ids = {
         row.product_id
         for row in db.query(models.Price.product_id).filter(
-            models.Price.store_id == store_id
+            models.Price.store_id == store.id
         ).all()
     }
 
-    # Eliminar los precios del comercio primero (store_id no admite NULL)
     db.query(models.Price).filter(
-        models.Price.store_id == store_id
+        models.Price.store_id == store.id
     ).delete()
 
     for product_id in affected_product_ids:

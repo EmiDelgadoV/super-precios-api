@@ -2,17 +2,39 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/products", tags=["Productos"])
+
+
+def _get_owned_product(product_id: int, owner_id: int, db: Session) -> models.Product:
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id,
+        models.Product.owner_id == owner_id,
+    ).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return product
+
+
+def _get_owned_category(category_id: int, owner_id: int, db: Session) -> models.Category:
+    category = db.query(models.Category).filter(
+        models.Category.id == category_id,
+        models.Category.owner_id == owner_id,
+    ).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Categoria no encontrada")
+    return category
 
 
 @router.get("/")
 def get_products(
     category: str = None,
     search: str = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    query = db.query(models.Product)
+    query = db.query(models.Product).filter(models.Product.owner_id == current_user.id)
 
     if category:
         query = query.join(models.Category).filter(
@@ -60,12 +82,12 @@ def get_products(
 
 
 @router.get("/{product_id}")
-def get_product_prices(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(
-        models.Product.id == product_id
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+def get_product_prices(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    product = _get_owned_product(product_id, current_user.id, db)
 
     prices = []
     for price in product.prices:
@@ -100,26 +122,24 @@ def get_product_prices(product_id: int, db: Session = Depends(get_db)):
 def create_product(
     name: str,
     category_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     name = name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
 
-    category = db.query(models.Category).filter(
-        models.Category.id == category_id
-    ).first()
-    if not category:
-        raise HTTPException(status_code=404, detail="Categoria no encontrada")
+    category = _get_owned_category(category_id, current_user.id, db)
 
     existing = db.query(models.Product).filter(
+        models.Product.owner_id == current_user.id,
         models.Product.name == name,
-        models.Product.category_id == category_id
+        models.Product.category_id == category.id
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="El producto ya existe en esa categoria")
 
-    product = models.Product(name=name, category_id=category_id)
+    product = models.Product(name=name, category_id=category.id, owner_id=current_user.id)
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -135,34 +155,28 @@ def update_product(
     product_id: int,
     name: str,
     category_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    product = db.query(models.Product).filter(
-        models.Product.id == product_id
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    product = _get_owned_product(product_id, current_user.id, db)
 
     name = name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="El nombre no puede estar vacio")
 
-    category = db.query(models.Category).filter(
-        models.Category.id == category_id
-    ).first()
-    if not category:
-        raise HTTPException(status_code=404, detail="Categoria no encontrada")
+    category = _get_owned_category(category_id, current_user.id, db)
 
     duplicate = db.query(models.Product).filter(
+        models.Product.owner_id == current_user.id,
         models.Product.name == name,
-        models.Product.category_id == category_id,
+        models.Product.category_id == category.id,
         models.Product.id != product_id
     ).first()
     if duplicate:
         raise HTTPException(status_code=400, detail="Ya existe un producto con ese nombre en esa categoria")
 
     product.name = name
-    product.category_id = category_id
+    product.category_id = category.id
     db.commit()
     db.refresh(product)
     return {
@@ -173,14 +187,13 @@ def update_product(
 
 
 @router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(
-        models.Product.id == product_id
-    ).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    product = _get_owned_product(product_id, current_user.id, db)
 
-    # Eliminar precios asociados primero
     db.query(models.Price).filter(
         models.Price.product_id == product_id
     ).delete()

@@ -3,16 +3,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.database import engine
 from app import models
-from app.routers import stores, products, prices, categories
+from app.routers import stores, products, prices, categories, auth
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Super Precios",
     description="Comparador de precios de supermercados",
-    version="0.1.0"
+    version="0.2.0-dev"
 )
 
+app.include_router(auth.router)
 app.include_router(stores.router)
 app.include_router(categories.router)
 app.include_router(products.router)
