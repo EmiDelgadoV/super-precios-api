@@ -3,24 +3,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
 from app.auth import get_current_user
+from app.pricing import recalculate_cheapest
 
 router = APIRouter(prefix="/stores", tags=["Comercios"])
-
-
-def _recalculate_cheapest(product_id: int, db: Session) -> None:
-    """
-    Vuelve a marcar cual es el precio mas barato de un producto.
-    Criterio actual: menor 'amount'. Si hay empate, todos los empatados quedan marcados.
-    """
-    prices = db.query(models.Price).filter(
-        models.Price.product_id == product_id
-    ).all()
-    if not prices:
-        return
-
-    lowest = min(p.amount for p in prices)
-    for p in prices:
-        p.is_cheapest = 1 if p.amount == lowest else 0
 
 
 def _get_owned_store(store_id: int, owner_id: int, db: Session) -> models.Store:
@@ -76,9 +61,11 @@ def get_prices_by_store(
         cheapest_store = None
         cheapest_amount = None
         if not is_cheapest:
-            best = min(price.product.prices, key=lambda p: p.amount)
-            cheapest_store = best.store.name
-            cheapest_amount = best.amount
+            candidatos = [p for p in price.product.prices if p.amount > 0]
+            if candidatos:
+                best = min(candidatos, key=lambda p: p.amount)
+                cheapest_store = best.store.name
+                cheapest_amount = best.amount
 
         result.append({
             "product_id": price.product_id,
@@ -194,7 +181,7 @@ def delete_store(
     ).delete()
 
     for product_id in affected_product_ids:
-        _recalculate_cheapest(product_id, db)
+        recalculate_cheapest(product_id, db)
 
     db.delete(store)
     db.commit()

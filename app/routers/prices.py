@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
 from app.auth import get_current_user
+from app.pricing import recalculate_cheapest
 
 router = APIRouter(prefix="/prices", tags=["Precios"])
 
@@ -41,7 +42,11 @@ def update_price(
             price.brand = payload.brand
         if payload.quantity:
             price.quantity = payload.quantity
-            price.unit_price = round(payload.amount / payload.quantity * 1000, 2)
+
+        # Recalcular el precio por kg siempre que se conozca la cantidad,
+        # la hayas mandado ahora o ya estuviera guardada de antes.
+        if price.quantity:
+            price.unit_price = round(price.amount / price.quantity * 1000, 2)
     else:
         # Crear precio nuevo
         unit_price = None
@@ -58,18 +63,7 @@ def update_price(
         db.add(price)
 
     db.flush()
-
-    # Recalcular cuál es el más barato para este producto
-    all_prices = db.query(models.Price).filter(
-        models.Price.product_id == payload.product_id,
-        models.Price.amount > 0
-    ).all()
-
-    if all_prices:
-        min_amount = min(p.amount for p in all_prices)
-        for p in all_prices:
-            p.is_cheapest = 1 if p.amount == min_amount else 0
-
+    recalculate_cheapest(payload.product_id, db)
     db.commit()
 
     return {
