@@ -2,7 +2,7 @@
 
 Comparador de precios de supermercados. Nace de una planilla Excel real que se usaba para anotar en qué comercio del barrio conviene comprar cada producto, y la convierte en una API multiusuario con un frontend web pensado para usarse desde el celular.
 
-**Estado: pre-alpha, en desarrollo activo.** Cada cuenta ve y administra únicamente sus propios datos. Lo principal funciona, pero faltan piezas (ver "Limitaciones y próximos pasos").
+**Estado: pre-alpha, en desarrollo activo.** Cada cuenta ve y administra únicamente sus propios datos. Lo principal funciona y tiene tests automatizados, pero faltan piezas (ver "Limitaciones y próximos pasos").
 
 ## Qué hace
 
@@ -16,11 +16,12 @@ Comparador de precios de supermercados. Nace de una planilla Excel real que se u
 ## Stack
 
 - Python, FastAPI y Uvicorn
-- SQLAlchemy con SQLite por defecto y PostgreSQL opcional
+- SQLAlchemy con SQLite para desarrollo local y PostgreSQL para Docker/producción
 - Autenticación con JWT y contraseñas hasheadas con bcrypt
 - Frontend en HTML, CSS y JavaScript puro, servido por la misma API
 - pandas y openpyxl para importar datos desde Excel
-- pytest y httpx para tests (instalados, todavía sin tests escritos)
+- pytest y httpx, con tests automatizados cubriendo autenticación, categorías, productos, comercios y precios
+- Docker y docker-compose para correr la API junto con PostgreSQL
 
 ## Cómo correrlo en local
 
@@ -72,6 +73,46 @@ python import_excel.py tu-mail@ejemplo.com
 
 Cada cuenta que se registre arranca sin datos propios. Para que otra persona (por ejemplo, un familiar) vea los mismos productos y comercios, hay que repetir el paso 2 con su mail, una vez que su cuenta ya esté registrada.
 
+## Cómo correrlo con Docker
+
+Requisito: Docker Desktop instalado y corriendo.
+
+Copiar `.env.example` como `.env` y completar `SECRET_KEY` (cualquier texto largo y random) y `POSTGRES_PASSWORD` (la contraseña que va a tener la base de Postgres dentro de los contenedores). `DATABASE_URL` no hace falta tocarla: `docker-compose.yml` la pisa con la conexión a Postgres.
+
+```bash
+docker compose up --build
+```
+
+La primera vez tarda, porque descarga la imagen de PostgreSQL y construye la propia. Cuando el log diga `Application startup complete`, está listo:
+
+- Frontend: http://localhost:8000
+- Documentación interactiva: http://localhost:8000/docs
+
+El primer uso es igual que en local (registrar cuenta e importar datos), pero el import se corre dentro del contenedor, porque ahí es donde tiene acceso a la base:
+
+```bash
+docker compose exec api python import_excel.py tu-mail@ejemplo.com
+```
+
+Esta base de Postgres es independiente de la SQLite que usa el modo local: son dos bases distintas, así que las cuentas y datos no se comparten entre un modo y el otro.
+
+Otros comandos útiles:
+
+| Comando | Para qué |
+|---|---|
+| `docker compose up -d --build` | Levantar todo en segundo plano |
+| `docker compose logs -f api` | Ver los logs de la API en vivo |
+| `docker compose down` | Parar todo (los datos de Postgres quedan guardados) |
+| `docker compose down -v` | Parar todo y borrar los datos de Postgres |
+
+## Tests
+
+```bash
+pytest tests/ -v
+```
+
+Cada test corre contra una base SQLite temporal, separada de `superprecios.db`, así que no hace falta Docker ni tocar tus datos reales para correrlos.
+
 ## Configuración
 
 Las variables se leen desde un archivo `.env` (hay un modelo en `.env.example`).
@@ -80,6 +121,7 @@ Las variables se leen desde un archivo `.env` (hay un modelo en `.env.example`).
 |---|---|
 | `DATABASE_URL` | Conexión a la base. Si no se define, usa `sqlite:///./superprecios.db`. Para PostgreSQL: `postgresql+psycopg://usuario:password@localhost:5432/superprecios` |
 | `SECRET_KEY` | Clave con la que se firman los tokens de sesión. **Tiene que ser secreta y distinta en cada entorno.** Si no se define, se usa un valor de desarrollo que no debe usarse en producción. `.env` nunca se sube al repositorio. |
+| `POSTGRES_PASSWORD` | Solo la usa `docker-compose.yml`, para la base de PostgreSQL dentro de los contenedores. No afecta al modo local sin Docker. |
 
 ## Importar datos desde Excel
 
@@ -157,8 +199,17 @@ super-precios-api/
 │   └── static/
 │       └── index.html     # Frontend (login/registro + app)
 ├── tests/
+│   ├── conftest.py         # Base de datos temporal y usuario logueado, para todos los tests
+│   ├── test_categories.py
+│   ├── test_products.py
+│   ├── test_stores.py
+│   ├── test_prices.py
+│   └── test_seguridad.py   # Aislamiento entre cuentas
 ├── import_excel.py        # Carga inicial desde Excel, bajo una cuenta
 ├── Super25.xlsx           # Datos de origen
+├── Dockerfile
+├── docker-compose.yml      # API + PostgreSQL
+├── .dockerignore
 ├── requirements.txt
 ├── .env.example
 └── .gitignore
@@ -172,15 +223,12 @@ Limitaciones conocidas de la versión actual:
 - No hay forma de compartir datos entre dos cuentas (por ejemplo, entre familiares): cada una arranca vacía y hay que importarle los datos por separado.
 - No se puede eliminar un precio individual, solo reemplazarlo.
 - Las categorías nuevas usan un ícono por defecto en el frontend.
-- Al actualizar un precio sin informar la cantidad, el precio por kg guardado no se recalcula.
 - Los endpoints de creación y edición reciben los datos por query string en lugar de un body JSON.
-- Todavía no hay tests automatizados.
+- Sin límite de intentos de login (importante antes de compartir la URL con más gente, no para uso local).
 
 Próximos pasos:
 
-- Tests con pytest (adaptados para incluir login).
-- Docker y docker-compose.
-- Deploy con PostgreSQL.
+- Deploy en un servicio como Render, con PostgreSQL.
 - Eliminar precios individuales.
 - Función "viaje de compras": dada una lista de productos, sugerir en qué comercio conviene comprar la mayoría al mejor precio.
 - Integración con IA (llm-secure-api + Gemini) para pedir el viaje de compras en lenguaje natural.
